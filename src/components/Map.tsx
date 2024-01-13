@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import getFlightData from '../services/flightService';
+import getFlightDataAll from '../services/flightServiceAll';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
@@ -81,7 +81,7 @@ export function Map() {
     useEffect(() => {
         if (swLat || swLng || neLat || neLng != null) {
 
-            getFlightData(swLat, swLng, neLat, neLng)
+            getFlightDataAll(swLat, swLng, neLat, neLng)
 
         }
         console.log('Updated Bounds:', swLat, swLng, neLat, neLng);

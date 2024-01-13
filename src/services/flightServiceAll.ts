@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-const getFlightData = async (
+const getFlightDataAll = async (
         swLat: number | null, 
         swLng: number | null, 
         neLat: number | null, 
         neLng: number | null
     ): Promise<any> => {
     try {
-        const endPoint = `${import.meta.env.VITE_API_URL || 'XXXX'}/api/flights`;
+        const endPoint = `${import.meta.env.VITE_API_URL}/api/flights/all`;
         const response = await axios.get(endPoint, {
             params: {
                 bbox: `${swLat},${swLng},${neLat},${neLng}`
@@ -20,4 +20,4 @@ const getFlightData = async (
     }
 };
 
-export default getFlightData;
+export default getFlightDataAll;

@@ -9,7 +9,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "build:server": "tsc -p tsconfig.node.json",
-    "start:server": "node ./dist/server.js",
+    "start:server": "node ./server/server.js",
     "start": "concurrently \"npm run start:server\" \"npm run dev\""
   },
   "dependencies": {

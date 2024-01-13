@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 
 console.log('flightController');
-const getFlights = async (_req: Request, res: Response): Promise<void> => {
+const getFlightsAll = async (_req: Request, res: Response): Promise<void> => {
     try {
         console.log('reached getFlights');
         const response = await axios.get('https://airlabs.co/api/v9/flights', {
@@ -26,4 +26,4 @@ const getFlights = async (_req: Request, res: Response): Promise<void> => {
     }
 };
 
-export default getFlights;
+export default getFlightsAll;
