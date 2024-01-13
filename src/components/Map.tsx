@@ -1,25 +1,25 @@
 import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import axios from 'axios';
+import getFlightData from '../services/flightService';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
 
-function getFlights(lng: number, lat: number, zoom: number) {
-    axios.get('/api/allFlights', {
-        params: {
-            lng: lng,
-            lat: lat,
-            zoom: zoom
-        }
-    })
-    .then(response => {
-        console.log(response.data);
-    })
-    .catch(error => {
-        console.error('Error', error);
-    })
-}
+// function getFlights(lng: number, lat: number, zoom: number) {
+//     axios.get('/api/allFlights', {
+//         params: {
+//             lng: lng,
+//             lat: lat,
+//             zoom: zoom
+//         }
+//     })
+//     .then(response => {
+//         console.log(response.data);
+//     })
+//     .catch(error => {
+//         console.error('Error', error);
+//     })
+// }
 
 export function Map() {
     const mapContainer = useRef<any>(null);
@@ -45,10 +45,10 @@ export function Map() {
         });
         map.current.on('move', () => {
             if (map.current) {
-                setSwLat(map.current.getBounds()._sw.lat);
-                setSwLng(map.current.getBounds()._sw.lng);
-                setNeLat(map.current.getBounds()._ne.lat);
-                setNeLng(map.current.getBounds()._ne.lng);
+                // setSwLat(map.current.getBounds()._sw.lat);
+                // setSwLng(map.current.getBounds()._sw.lng);
+                // setNeLat(map.current.getBounds()._ne.lat);
+                // setNeLng(map.current.getBounds()._ne.lng);
                 setLng(map.current.getCenter().lng.toFixed(4));
                 setLat(map.current.getCenter().lat.toFixed(4));
                 setZoom(map.current.getZoom().toFixed(2));
@@ -80,32 +80,9 @@ export function Map() {
     
     useEffect(() => {
         if (swLat || swLng || neLat || neLng != null) {
-            // Frontend
-            axios.get('/api/flights', {
-                params: {
-                    bbox: `${swLat},${swLng},${neLat},${neLng}`
-                }
-            })
-            .then(response => {
-                console.log(response.data);
-            })
-            .catch(error => {
-                console.error(error);
-            })
 
-            // Backend
-            // axios.get('https://airlabs.co/api/v9/flights', {
-            //     params: {
-            //         api_key: 'YOUR-API-KEY',
-            //         bbox: `${swLat},${swLng},${neLat},${neLng}`
-            //     }
-            // })
-            // .then(resopnse => {
-            //     console.log(resopnse.data);
-            // })
-            // .catch(error => {
-            //     console.error(error);
-            // })
+            getFlightData(swLat, swLng, neLat, neLng)
+
         }
         console.log('Updated Bounds:', swLat, swLng, neLat, neLng);
     }, [swLat, swLng, neLat, neLng]);

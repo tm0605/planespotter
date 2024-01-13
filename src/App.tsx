@@ -1,6 +1,6 @@
 // import React, {useRef, useEffect, useState } from 'react';
-import { Map } from './Map.tsx';
-import { NavBar, InfoBar } from './NavBar.tsx';
+import { Map } from './components/Map.tsx';
+import { NavBar, InfoBar } from './components/NavBar.tsx';
 
 export default function App() {
     return (
