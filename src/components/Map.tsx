@@ -28,11 +28,6 @@ export function Map() {
     const [lat, setLat] = useState<any>(42.35);
     const [zoom, setZoom] = useState<any>(9);
 
-    const [swLat, setSwLat] = useState<number | null>(null);
-    const [swLng, setSwLng] = useState<number | null>(null);
-    const [neLat, setNeLat] = useState<number | null>(null);
-    const [neLng, setNeLng] = useState<number | null>(null);
-
 
     useEffect(() => {
         if (map.current) return; // initialize map only once
@@ -45,47 +40,52 @@ export function Map() {
         });
         map.current.on('move', () => {
             if (map.current) {
-                // setSwLat(map.current.getBounds()._sw.lat);
-                // setSwLng(map.current.getBounds()._sw.lng);
-                // setNeLat(map.current.getBounds()._ne.lat);
-                // setNeLng(map.current.getBounds()._ne.lng);
                 setLng(map.current.getCenter().lng.toFixed(4));
                 setLat(map.current.getCenter().lat.toFixed(4));
                 setZoom(map.current.getZoom().toFixed(2));
             }
         });
-        map.current.on('load', () => {
-            if (map.current) {
-                setSwLat(map.current.getBounds()._sw.lat)
-                setSwLng(map.current.getBounds()._sw.lng)
-                setNeLat(map.current.getBounds()._ne.lat)
-                setNeLng(map.current.getBounds()._ne.lng)
-            }
+        map.current.on('load', async () => {
+            const swLat = map.current.getBounds()._sw.lat;
+            const swLng = map.current.getBounds()._sw.lng;
+            const neLat = map.current.getBounds()._ne.lat;
+            const neLng = map.current.getBounds()._ne.lng;
+
+            const geojson = await getFlightDataAll(swLat, swLng, neLat, neLng);
+            
+            map.current.addSource('flights', {
+                type: 'geojson',
+                data: geojson
+            });
+            map.current.addLayer({
+                'id': 'flights',
+                'type': 'symbol',
+                'source': 'flights',
+                'layout': {
+                    'icon-image': 'airport',
+                    'icon-rotate': ['get', 'rotation'],
+                    'icon-allow-overlap': true,
+                }
+            });
         })
 
-        map.current.on('moveend', () => {
-            if (map.current) {
-                setSwLat(map.current.getBounds()._sw.lat)
-                setSwLng(map.current.getBounds()._sw.lng)
-                setNeLat(map.current.getBounds()._ne.lat)
-                setNeLng(map.current.getBounds()._ne.lng)
-            }
+        map.current.on('moveend', async () => {
+            const swLat = map.current.getBounds()._sw.lat;
+            const swLng = map.current.getBounds()._sw.lng;
+            const neLat = map.current.getBounds()._ne.lat;
+            const neLng = map.current.getBounds()._ne.lng;
+
+            const geojson = await getFlightDataAll(swLat, swLng, neLat, neLng);
+
+            console.log(geojson)
+            map.current.getSource('flights').setData(geojson);
         });
 
         map.current.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true,
             showZoom: false
         }))
-    }, [swLat, swLng, neLat, neLng, lng, lat, zoom]);
-    
-    useEffect(() => {
-        if (swLat || swLng || neLat || neLng != null) {
-
-            getFlightDataAll(swLat, swLng, neLat, neLng)
-
-        }
-        console.log('Updated Bounds:', swLat, swLng, neLat, neLng);
-    }, [swLat, swLng, neLat, neLng]);
+    }, [lng, lat, zoom]);
 
     useEffect(() => {
         const firstNavbar = document.querySelectorAll('.navbar')[0] as HTMLElement; // Select the navbar element

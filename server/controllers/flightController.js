@@ -7,7 +7,7 @@ const convertGeoJson = (flights) => {
         'type': 'FeatureCollection',
         'features': []
     };
-
+    
     flights.forEach(flight => {
         geoJson.features.push({
             'type': 'Feature',
@@ -15,7 +15,11 @@ const convertGeoJson = (flights) => {
                 'type': 'Point',
                 'coordinates': [flight.lng, flight.lat]
             },
-            'properties': flight
+            'properties': {
+                'flight': flight,
+                'flight_iata': flight.flight_iata,
+                'rotation': parseInt(flight.dir)
+            }
         })
     })
     return geoJson;
