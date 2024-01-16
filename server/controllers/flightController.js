@@ -42,7 +42,7 @@ const getFlightsAll = async (req, res) => {
             const geoJson = convertGeoJson(flights);
             res.json(geoJson);
         } else {
-            res.status(404).json({ message: 'No flights found' });
+            res.status(204).json({ message: 'No flights found' });
         }
         
     }
