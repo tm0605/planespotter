@@ -1,7 +1,9 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import getFlightDataAll from '../services/flightServiceAll';
+import { FlightInfo } from './FlightInfo'; 
 import { response } from 'express';
+import FlightContext from '../contexts/FlightContext';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
@@ -25,6 +27,14 @@ export function Map() {
     const [lat, setLat] = useState<any>(42.35);
     const [zoom, setZoom] = useState<any>(9);
 
+    const { selectedFlight, setSelectedFlight } = useContext(FlightContext);
+    const selectedFlightRef = useRef(selectedFlight);
+    // const [selectedFlight, setSelectedFlight] = useState<any>(null);
+
+    useEffect(() => {
+        selectedFlightRef.current = selectedFlight;
+        console.log(`set as ${selectedFlight}`)
+    }, [selectedFlight]);
 
     useEffect(() => {
         if (map.current) return; // initialize map only once
@@ -35,6 +45,11 @@ export function Map() {
             center: [lng, lat],
             zoom: zoom
         });
+
+        map.current.addControl(new mapboxgl.NavigationControl({
+            visualizePitch: true,
+            showZoom: false
+        }))
         
         map.current.on('move', () => {
             if (map.current) {
@@ -61,50 +76,47 @@ export function Map() {
                 }
             });
 
-            const swLat = map.current.getBounds()._sw.lat;
-            const swLng = map.current.getBounds()._sw.lng;
-            const neLat = map.current.getBounds()._ne.lat;
-            const neLng = map.current.getBounds()._ne.lng;
-        
-            const geojson = await getFlightDataAll(swLat, swLng, neLat, neLng);
-            
-            if (geojson != '') {
-                map.current.getSource('flights').setData(geojson);
-            }
+            updateFlight(map);
         })
 
-        map.current.on('moveend', async () => {
-            const swLat = map.current.getBounds()._sw.lat;
-            const swLng = map.current.getBounds()._sw.lng;
-            const neLat = map.current.getBounds()._ne.lat;
-            const neLng = map.current.getBounds()._ne.lng;
+        const updateSelectedFlightData = () => {
+            if (selectedFlightRef.current == null) return;
+            const sourceData = map.current.getSource('flights')._data;
+            const updatedFlight = sourceData.features.find(flight => flight.properties.id === selectedFlightRef.current.hex);
 
-            const geojson = await getFlightDataAll(swLat, swLng, neLat, neLng);
-
-            
-            if (geojson != '') {
-                map.current.getSource('flights').setData(geojson);
+            if (updatedFlight) {
+                setSelectedFlight(updatedFlight.properties.flight);
             }
+        }
+
+        map.current.on('moveend', async () => {
+            updateFlight(map);
+            updateSelectedFlightData();
         });
 
-        map.current.addControl(new mapboxgl.NavigationControl({
-            visualizePitch: true,
-            showZoom: false
-        }))
-
         setInterval(async () => {
-            const swLat = map.current.getBounds()._sw.lat;
-            const swLng = map.current.getBounds()._sw.lng;
-            const neLat = map.current.getBounds()._ne.lat;
-            const neLng = map.current.getBounds()._ne.lng;
-
-            const geojson = await getFlightDataAll(swLat, swLng, neLat, neLng);
-            // console.log(geojson)
-            
-            if (geojson != '') {
-                map.current.getSource('flights').setData(geojson);
-            }
+            updateFlight(map);
+            updateSelectedFlightData();
         }, 10000);
+
+        map.current.on('click', (e) => {
+            map.current.setLayoutProperty('flights', 'icon-image', 'airport')
+            setSelectedFlight(null);
+        })
+
+        map.current.on('click', 'flights', (e) => {
+            // console.log(e.features[0].properties.id)
+            // console.log(JSON.parse(e.features[0].properties.flight))
+            map.current.setLayoutProperty('flights', 'icon-image',
+            [
+                'match',
+                ['get', 'id'],
+                e.features[0].properties.id, 'rocket',
+                'airport'
+            ])
+            const flightData = JSON.parse(e.features[0].properties.flight);
+            setSelectedFlight(flightData);
+        })
 
     }, [lng, lat, zoom]);
 
@@ -121,9 +133,7 @@ export function Map() {
     
     return (
         <div>
-            <div className="sidebar">
-                Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
-            </div>
+            <FlightInfo />
             <div ref={mapContainer} className='map-container'  style={{width: '100vw', height: '100vh'}} />
         </div>
     )

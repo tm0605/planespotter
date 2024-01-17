@@ -16,10 +16,11 @@ const convertGeoJson = (flights) => {
                 'coordinates': [flight.lng, flight.lat]
             },
             'properties': {
+                'id': flight.hex,
                 'flight': flight,
                 'flight_iata': flight.flight_iata,
                 'rotation': parseInt(flight.dir)
-            }
+            },
         })
     })
     return geoJson;
