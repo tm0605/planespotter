@@ -23,15 +23,15 @@ export function FlightInfo() {
 
         return (
             <div className="sidebar">
-                <h3>Flight: {flight_icao} | {flight_iata}</h3>
-                <p>{dep_icao} - {arr_icao}</p>
+                <h2>{flight_icao} | {flight_iata}</h2>
+                <h3>{dep_icao} - {arr_icao}</h3>
                 <p>{dep_iata} - {arr_iata}</p>
                 <p>Aircraft: {aircraft}</p>
                 <p>Registration: {reg_number}</p>
                 <p>Altitude: {alt.toFixed(0)} | {v_speed}</p>
                 <p>Speed: {speed}</p>
-                <p>Direction: {dir}</p>
-                <p>Latitude: {lat} Longitude: {lng}</p>
+                <p>Direction: {dir.toFixed(0)}</p>
+                <p>Latitude: {lat.toFixed(2)} Longitude: {lng.toFixed(2)}</p>
                 <p>Squawk: {squawk}</p>
             </div>
         )

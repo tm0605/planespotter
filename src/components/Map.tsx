@@ -2,7 +2,6 @@ import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import getFlightDataAll from '../services/flightServiceAll';
 import { FlightInfo } from './FlightInfo'; 
-import { response } from 'express';
 import FlightContext from '../contexts/FlightContext';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
@@ -29,11 +28,9 @@ export function Map() {
 
     const { selectedFlight, setSelectedFlight } = useContext(FlightContext);
     const selectedFlightRef = useRef(selectedFlight);
-    // const [selectedFlight, setSelectedFlight] = useState<any>(null);
 
     useEffect(() => {
         selectedFlightRef.current = selectedFlight;
-        console.log(`set as ${selectedFlight}`)
     }, [selectedFlight]);
 
     useEffect(() => {
@@ -69,10 +66,11 @@ export function Map() {
                 'type': 'symbol',
                 'source': 'flights',
                 'layout': {
-                    'icon-image': 'airport',
+                    'icon-image': 'small_plane',
                     'icon-rotate': ['get', 'rotation'],
                     'icon-allow-overlap': true,
-                    'icon-rotation-alignment': 'map'
+                    'icon-rotation-alignment': 'map',
+                    'icon-size': 1
                 }
             });
 
@@ -89,33 +87,55 @@ export function Map() {
             }
         }
 
+        // Trigger when map is moved
         map.current.on('moveend', async () => {
             updateFlight(map);
             updateSelectedFlightData();
         });
 
+        // Trigger for a certain interval
         setInterval(async () => {
             updateFlight(map);
             updateSelectedFlightData();
         }, 10000);
 
+        // Trigger when clicked
         map.current.on('click', (e) => {
-            map.current.setLayoutProperty('flights', 'icon-image', 'airport')
+            map.current.setLayoutProperty('flights', 'icon-image', 'small_plane')
+            map.current.setPaintProperty('major-airports-text', 'text-color', '#ffffff')
+            map.current.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
             setSelectedFlight(null);
         })
 
+        // Tirgger when clicked on flights
         map.current.on('click', 'flights', (e) => {
-            // console.log(e.features[0].properties.id)
-            // console.log(JSON.parse(e.features[0].properties.flight))
             map.current.setLayoutProperty('flights', 'icon-image',
             [
                 'match',
                 ['get', 'id'],
-                e.features[0].properties.id, 'rocket',
-                'airport'
+                e.features[0].properties.id, 'small_plane_selected',
+                'small_plane'
             ])
             const flightData = JSON.parse(e.features[0].properties.flight);
             setSelectedFlight(flightData);
+        })
+
+        map.current.on('click', 'major-airports-circle', (e) => {
+            console.log(e.features)
+            map.current.setPaintProperty('major-airports-circle', 'circle-color', 
+            [
+                'match',
+                ['get', 'iata_code'],
+                e.features[0].properties.iata_code, '#8fffab',
+                '#ffffff'
+            ])
+            map.current.setPaintProperty('major-airports-text', 'text-color',
+            [
+                'match',
+                ['get', 'iata_code'],
+                e.features[0].properties.iata_code, '#8fffab',
+                '#ffffff'
+            ])
         })
 
     }, [lng, lat, zoom]);
