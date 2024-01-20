@@ -37,7 +37,7 @@ def classify_airports(data):
     other_airports = []
 
     for airport in data["response"]:
-        if airport["iata_code"] is not None:
+        if airport["iata_code"] is not None and airport["icao_code"] is not None:
             major_airports.append(airport)
         else:
             other_airports.append(airport)
@@ -47,8 +47,8 @@ def classify_airports(data):
 # Path to your input JSON file
 input_file_path = 'airport.json'
 
-output_major_airports_file_path = 'major_airports.geojson'
-output_other_airports_file_path = 'other_airports.geojson'
+output_major_airports_file_path = 'major_airports2.geojson'
+output_other_airports_file_path = 'other_airports2.geojson'
 
 original_data = read_json_file(input_file_path)
 
