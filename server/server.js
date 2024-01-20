@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import flightRoutes from './routes/flightRoutes.js';
+import locationRoutes from './routes/locationRoutes.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -11,6 +12,8 @@ app.use(cors()); // Enable CORS for frontend access
 app.use(express.json());
 
 app.use('/api/flights', flightRoutes);
+
+app.use('/api/locations', locationRoutes);
 
 // app.get('/', (req: Request, res: Response) => {
 app.get('/', (_req, res) => {
