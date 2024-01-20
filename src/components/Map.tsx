@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import getFlightDataAll from '../services/flightServiceAll';
+import getPhotoLocationAll from '../services/photoLocationService';
 import { FlightInfo } from './FlightInfo'; 
 import FlightContext from '../contexts/FlightContext';
 
@@ -17,6 +18,10 @@ const updateFlight  = async (map) => {
     if (geojson != '') {
         map.current.getSource('flights').setData(geojson);
     }
+}
+
+const getLocation = async (lat: number, lng: number) => {
+    return getPhotoLocationAll(lat, lng);
 }
 
 export function Map() {
@@ -73,7 +78,6 @@ export function Map() {
                     'icon-size': 1
                 }
             });
-
             updateFlight(map);
         })
 
@@ -120,8 +124,8 @@ export function Map() {
             setSelectedFlight(flightData);
         })
 
-        map.current.on('click', 'major-airports-circle', (e) => {
-            console.log(e.features)
+        map.current.on('click', 'major-airports-circle', async (e) => {
+            // console.log(e.lngLat.lat)
             map.current.setPaintProperty('major-airports-circle', 'circle-color', 
             [
                 'match',
@@ -136,6 +140,8 @@ export function Map() {
                 e.features[0].properties.iata_code, '#8fffab',
                 '#ffffff'
             ])
+            const data = await getLocation(e.lngLat.lat, e.lngLat.lng);
+            console.log(data);
         })
 
     }, [lng, lat, zoom]);
