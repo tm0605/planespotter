@@ -20,8 +20,12 @@ const updateFlight  = async (map) => {
     }
 }
 
-const getLocation = async (lat: number, lng: number) => {
-    return getPhotoLocationAll(lat, lng);
+const updateLocation = async (map, lat: number, lng: number) => {
+    const geojson = await getPhotoLocationAll(lat, lng);
+
+    if (geojson != '') {
+        map.current.getSource('spottingLocations').setData(geojson);
+    }
 }
 
 export function Map() {
@@ -79,6 +83,18 @@ export function Map() {
                 }
             });
             updateFlight(map);
+            map.current.addSource('spottingLocations', {
+                type: 'geojson',
+                data: null
+            });
+            map.current.addLayer({
+                'id': 'spottingLocations',
+                'type': 'symbol',
+                'source': 'spottingLocations',
+                'layout': {
+                    'icon-image': 'rocket'
+                }
+            })
         })
 
         const updateSelectedFlightData = () => {
@@ -109,6 +125,10 @@ export function Map() {
             map.current.setPaintProperty('major-airports-text', 'text-color', '#ffffff')
             map.current.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
             setSelectedFlight(null);
+            map.current.getSource('spottingLocations').setData({
+                'type': 'FeatureCollection',
+                'features': []
+            });
         })
 
         // Tirgger when clicked on flights
@@ -140,8 +160,8 @@ export function Map() {
                 e.features[0].properties.iata_code, '#8fffab',
                 '#ffffff'
             ])
-            const data = await getLocation(e.lngLat.lat, e.lngLat.lng);
-            console.log(data);
+            updateLocation(map, e.lngLat.lat, e.lngLat.lng);
+            // console.log(data);
         })
 
     }, [lng, lat, zoom]);

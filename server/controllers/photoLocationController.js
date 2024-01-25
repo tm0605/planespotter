@@ -59,9 +59,31 @@ const getLocations = async (req, res) => {
                 return null;
             });
         });
-
+        const geoJson = {
+            'type': 'FeatureCollection',
+            'features': []
+        };
         const locations = await Promise.all(locationPromises);
-        res.json(locations.filter(location => location != null));
+        locations.forEach(location => {
+            geoJson.features.push({
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [location.longitude, location.latitude]
+                },
+                'properties': {
+                    'id': location.id,
+                    'owner': location.owner,
+                    'title': location.title,
+                    't_url': location.t_url,
+                    'p_url': location.p_url
+                }
+            })
+        })
+        // console.log(locations);
+        // console.log(locaitons.filter(location => location != null));
+        // res.json(locations.filter(location => location != null));
+        res.json(geoJson);
         
     }
     catch (error) {
