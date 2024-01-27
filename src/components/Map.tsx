@@ -7,6 +7,7 @@ import FlightContext from '../contexts/FlightContext';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
+// Get Flight Updates and Set Data
 const updateFlight  = async (map) => {
     const swLat = map.current.getBounds()._sw.lat;
     const swLng = map.current.getBounds()._sw.lng;
@@ -20,12 +21,57 @@ const updateFlight  = async (map) => {
     }
 }
 
+// Get Spotting Locaiton and Set Data
 const updateLocation = async (map, lat: number, lng: number) => {
     const geojson = await getPhotoLocationAll(lat, lng);
 
     if (geojson != '') {
         map.current.getSource('spottingLocations').setData(geojson);
     }
+}
+
+const flightSelect = (map, e) => {
+    map.current.setLayoutProperty('flights', 'icon-image',
+    [
+        'match',
+        ['get', 'id'],
+        e.features[0].properties.id, 'small_plane_selected',
+        'small_plane'
+    ])
+    map.current.setPaintProperty('flights', 'text-color',
+    [
+        'match',
+        ['get', 'id'],
+        e.features[0].properties.id, '#8fffab',
+        '#ffffff'
+    ])
+}
+
+const flightUnselect = (map) => {
+    map.current.setLayoutProperty('flights', 'icon-image', 'small_plane')
+    map.current.setPaintProperty('flights', 'text-color', '#ffffff')
+}
+
+const airportSelect = (map, e) => {
+    map.current.setPaintProperty('major-airports-circle', 'circle-color', 
+    [
+        'match',
+        ['get', 'iata_code'],
+        e.features[0].properties.iata_code, '#8fffab',
+        '#ffffff'
+    ])
+    map.current.setPaintProperty('major-airports-text', 'text-color',
+    [
+        'match',
+        ['get', 'iata_code'],
+        e.features[0].properties.iata_code, '#8fffab',
+        '#ffffff'
+    ])
+}
+
+const airportUnselect = (map) => {
+    map.current.setPaintProperty('major-airports-text', 'text-color', '#ffffff')
+    map.current.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
 }
 
 export function Map() {
@@ -65,6 +111,7 @@ export function Map() {
             }
         });
 
+        // When loading
         map.current.on('load', async () => {
             map.current.addSource('flights', {
                 type: 'geojson',
@@ -79,7 +126,31 @@ export function Map() {
                     'icon-rotate': ['get', 'rotation'],
                     'icon-allow-overlap': true,
                     'icon-rotation-alignment': 'map',
-                    'icon-size': 1
+                    // 'icon-size': 1,
+                    'icon-size': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        3, .5,
+                        5, 1
+                    ],
+                    'text-field': ['get', 'flight_iata'],
+                    'text-size': 15,
+                    'text-offset': [0, 1.5],
+                    'text-optional': true,
+                    'text-font': ['DIN Pro Bold']
+                },
+                'paint': {
+                    'text-color': '#ffffff',
+                    'text-halo-color': 'black',
+                    'text-halo-width': .7,
+                    'text-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        4.9, 0,
+                        5, 1
+                    ]
                 }
             });
             updateFlight(map);
@@ -92,7 +163,8 @@ export function Map() {
                 'type': 'symbol',
                 'source': 'spottingLocations',
                 'layout': {
-                    'icon-image': 'rocket'
+                    'icon-image': 'rocket',
+                    'icon-padding': 0
                 }
             })
         })
@@ -121,9 +193,8 @@ export function Map() {
 
         // Trigger when clicked
         map.current.on('click', (e) => {
-            map.current.setLayoutProperty('flights', 'icon-image', 'small_plane')
-            map.current.setPaintProperty('major-airports-text', 'text-color', '#ffffff')
-            map.current.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
+            flightUnselect(map);
+            airportUnselect(map);
             setSelectedFlight(null);
             map.current.getSource('spottingLocations').setData({
                 'type': 'FeatureCollection',
@@ -131,35 +202,29 @@ export function Map() {
             });
         })
 
+        map.current.on('mouseleave', 'flights', (e) => {
+            if (selectedFlightRef.current == null) {
+                // console.log(selectedFlightRef.current);
+                flightUnselect(map);
+            }
+        })
+
+        map.current.on('mouseover', 'flights', (e) => {
+            if (selectedFlightRef.current == null) {
+                flightSelect(map, e);
+            }
+        })
+
         // Tirgger when clicked on flights
         map.current.on('click', 'flights', (e) => {
-            map.current.setLayoutProperty('flights', 'icon-image',
-            [
-                'match',
-                ['get', 'id'],
-                e.features[0].properties.id, 'small_plane_selected',
-                'small_plane'
-            ])
+            flightSelect(map, e);
             const flightData = JSON.parse(e.features[0].properties.flight);
             setSelectedFlight(flightData);
         })
 
+        //  Trigger when clicked on airports
         map.current.on('click', 'major-airports-circle', async (e) => {
-            // console.log(e.lngLat.lat)
-            map.current.setPaintProperty('major-airports-circle', 'circle-color', 
-            [
-                'match',
-                ['get', 'iata_code'],
-                e.features[0].properties.iata_code, '#8fffab',
-                '#ffffff'
-            ])
-            map.current.setPaintProperty('major-airports-text', 'text-color',
-            [
-                'match',
-                ['get', 'iata_code'],
-                e.features[0].properties.iata_code, '#8fffab',
-                '#ffffff'
-            ])
+            airportSelect(map, e);
             updateLocation(map, e.lngLat.lat, e.lngLat.lng);
             // console.log(data);
         })
