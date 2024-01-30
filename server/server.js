@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import flightRoutes from './routes/flightRoutes.js';
 import locationRoutes from './routes/photoLocationRoutes.js';
+import airportRoutes from './routes/airportRoutes.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -17,6 +18,8 @@ app.use(express.json());
 app.use('/api/flights', flightRoutes);
 
 app.use('/api/photo', locationRoutes);
+
+app.use('/api/airport', airportRoutes);
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../dist')));
