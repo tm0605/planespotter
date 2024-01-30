@@ -30,6 +30,13 @@ const updateLocation = async (map, lat: number, lng: number) => {
     }
 }
 
+const removeLocation = (map) => {
+    map.current.getSource('spottingLocations').setData({
+        'type': 'FeatureCollection',
+        'features': []
+    });
+}
+
 const flightSelect = (map, e) => {
     map.current.setLayoutProperty('flights', 'icon-image',
     [
@@ -196,10 +203,7 @@ export function Map() {
             flightUnselect(map);
             airportUnselect(map);
             setSelectedFlight(null);
-            map.current.getSource('spottingLocations').setData({
-                'type': 'FeatureCollection',
-                'features': []
-            });
+            removeLocation(map);
         })
 
         map.current.on('mouseleave', 'flights', (e) => {
