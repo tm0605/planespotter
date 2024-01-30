@@ -34,7 +34,8 @@
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "composite": true
+    "composite": true,
+    "outDir": "./dist"
   },
   "include": ["src"]
 }
