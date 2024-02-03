@@ -1,7 +1,10 @@
 import { Router } from 'express';
-import getFlightsAll from '../controllers/flightController.js';
+import getFlightsBoundingBox from '../controllers/flightDbController.js';
+import streamDataToPostgres from '../models/flightDbUpdate.js';
 const router = Router();
 
-router.get('/all', getFlightsAll); // Route to get flights
+router.get('/bbox', getFlightsBoundingBox); // Route to get flights
+
+router.get('/update', streamDataToPostgres);
 
 export default router;

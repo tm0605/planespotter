@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
-import getFlightDataAll from '../services/flightServiceAll';
+import getFlightDataAll from '../services/flightServiceBbox';
 import getPhotoLocationAll from '../services/photoLocationService';
 import { FlightInfo } from './FlightInfo'; 
 import FlightContext from '../contexts/FlightContext';
