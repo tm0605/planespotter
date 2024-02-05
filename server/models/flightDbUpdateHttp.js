@@ -1,4 +1,3 @@
-//Defines the flight entity and includes methods for saving or updating flight data in the database.
 import pool from './planeSpotterDB.js';
 import getFlightsAll from '../controllers/flightApiController.js';
 import { Readable } from 'stream';
@@ -8,6 +7,7 @@ const streamDataToPostgres = async (req, res) => {
     const json = await getFlightsAll();
     // Assuming 'json.response' contains your flight data array
     const flights = json;
+    console.log('running streamDataToPostgres')
 
     // Convert each flight record into a CSV string
     const csvData = flights.map(flight => {
@@ -43,7 +43,7 @@ const streamDataToPostgres = async (req, res) => {
 
     const client = await pool.connect();
     try {
-
+        console.log('trying');
         await client.query('BEGIN');
         await client.query('')
         await client.query('TRUNCATE TABLE flights RESTART IDENTITY');
@@ -58,6 +58,7 @@ const streamDataToPostgres = async (req, res) => {
         stream.pipe(copyStream).on('finish', async () => {
             // Handle successful completion
             await client.query('COMMIT');
+            console.log('commited');
             res.status(200).json({ message: 'Data successfully imported' });
 
         }).on('error', (error) => {
