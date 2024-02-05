@@ -2,6 +2,14 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const parseLocation = (location) => {
+    const title = location.title.replace(/\'/g, "\\'");
+    const t = `<h5>${title}</h5>`
+    const t_url = location.t_url;
+    const p_url = location.p_url;
+    return `${t}<a href="${p_url}"><img alt="${title}" src="${t_url}" width="250"/></a>`;
+}
+
 const getLocations = async (req, res) => {
     try {
         // retrieve lat lng value from query
@@ -64,7 +72,9 @@ const getLocations = async (req, res) => {
             'features': []
         };
         const locations = await Promise.all(locationPromises);
+        console.log(locations[0]);
         locations.forEach(location => {
+            // const description = parseLocation(location);
             geoJson.features.push({
                 'type': 'Feature',
                 'geometry': {
@@ -76,11 +86,12 @@ const getLocations = async (req, res) => {
                     'owner': location.owner,
                     'title': location.title,
                     't_url': location.t_url,
-                    'p_url': location.p_url
+                    'p_url': location.p_url,
+                    'description': parseLocation(location)
                 }
             })
         })
-        // console.log(locations);
+        // console.log(locations[0]);
         // console.log(locaitons.filter(location => location != null));
         // res.json(locations.filter(location => location != null));
         res.json(geoJson);

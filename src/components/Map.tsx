@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { debounce } from 'lodash';
-import WebSocket from 'ws';
+// import WebSocket from 'ws';
 import getFlightData from '../services/flightService';
 import getPhotoLocationAll from '../services/photoLocationService';
 import sendActivity from '../services/activityService';
@@ -180,6 +180,11 @@ export function Map() {
             })
         })
 
+        const popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false
+        }).setMaxWidth("275px");
+
         const updateSelectedFlightData = () => {
             if (selectedFlightRef.current == null) return;
             const sourceData = map.current.getSource('flights')._data;
@@ -235,6 +240,31 @@ export function Map() {
             airportSelect(map, e);
             updateLocation(map, e.lngLat.lat, e.lngLat.lng);
             // console.log(data);
+        })
+
+        map.current.on('mouseenter', 'spottingLocations', (e) => {
+            // Change the cursor style as a UI indicator.
+            map.current.getCanvas().style.cursor = 'pointer';
+        
+            // Copy coordinates array.
+            const coordinates = e.features[0].geometry.coordinates.slice();
+            const description = e.features[0].properties.description;
+            
+            // Ensure that if the map is zoomed out such that multiple
+            // copies of the feature are visible, the popup appears
+            // over the copy being pointed to.
+            while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+            }
+
+            // Populate the popup and set its coordinates
+            // based on the feature found.
+            popup.setLngLat(coordinates).setHTML(description).addTo(map.current);
+        })
+
+        map.current.on('mouseleave', 'spottingLocations', (e) => {
+            map.current.getCanvas().style.cursor = '';
+            popup.remove();
         })
 
     }, [lng, lat, zoom]);

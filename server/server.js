@@ -18,6 +18,7 @@ const PORT = parseInt(process.env.PORT, 10) || 5000; // Backend port
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(cors()); // Enable CORS for frontend access
+apiApp.use(cors());
 app.use(express.json());
 
 apiApp.use('/flights', flightRoutes);
