@@ -5,7 +5,7 @@ const getPhotoLocationAll = async (
         lng: number | null
     ): Promise<any> => {
     try {
-        const endPoint = `${import.meta.env.VITE_API_URL}/api/photo/locationsAll`;
+        const endPoint = `${import.meta.env.VITE_API_URL}/photo/locationsAll`;
         const response = await axios.get(endPoint, {
             params: {
                 lat: lat,

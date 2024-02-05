@@ -1,4 +1,4 @@
-import streamDataToPostgres from "../models/flightDbUpdateFunc.js";
+import streamDataToPostgres from "../models/flightDbUpdate.js";
 import cron from 'node-cron';
 
 let lastActivityTimestamp = Date.now();

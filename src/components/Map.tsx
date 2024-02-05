@@ -2,7 +2,7 @@ import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { debounce } from 'lodash';
 import WebSocket from 'ws';
-import getFlightDataAll from '../services/flightServiceBbox';
+import getFlightData from '../services/flightService';
 import getPhotoLocationAll from '../services/photoLocationService';
 import sendActivity from '../services/activityService';
 import { FlightInfo } from './FlightInfo'; 
@@ -17,7 +17,7 @@ const updateFlight  = async (map) => {
     const neLat = map.current.getBounds()._ne.lat;
     const neLng = map.current.getBounds()._ne.lng;
 
-    const geojson = await getFlightDataAll(swLat, swLng, neLat, neLng);
+    const geojson = await getFlightData(swLat, swLng, neLat, neLng);
     
     if (geojson != '') {
         map.current.getSource('flights').setData(geojson);
@@ -145,8 +145,8 @@ export function Map() {
                         5, 1
                     ],
                     'text-field': ['get', 'flight_iata'],
-                    'text-size': 15,
-                    'text-offset': [0, 1.5],
+                    'text-size': 13,
+                    'text-offset': [0, 1.7],
                     'text-optional': true,
                     'text-font': ['DIN Pro Bold']
                 },
@@ -174,7 +174,8 @@ export function Map() {
                 'source': 'spottingLocations',
                 'layout': {
                     'icon-image': 'rocket',
-                    'icon-padding': 0
+                    'icon-padding': 0,
+                    'icon-allow-overlap': true
                 }
             })
         })
@@ -251,9 +252,6 @@ export function Map() {
     
     useEffect(() => {
         const handleUserActivity = debounce(() => {
-        // Send activity signal to backend
-        // fetch('http://your-backend.com/api/activity', { method: 'POST' });
-            console.log('activity detected')
             sendActivity();
         }, 1000);
     
@@ -268,31 +266,6 @@ export function Map() {
             handleUserActivity.cancel()
         };
     }, []);
-
-    // useEffect(() => {
-    //     // Establish WebSocket connection
-    //     const ws = new WebSocket('ws://localhost:3000');
-    
-    //     ws.onopen = () => {
-    //         console.log('WebSocket connected');
-    //         // Send an activity signal immediately upon connection
-    //         ws.send('User active');
-    //     };
-    
-    //     const sendActivity = () => {
-    //         if (ws.readyState === WebSocket.OPEN) {
-    //             ws.send('User active');
-    //         }
-    //     };
-    
-    //     // Example: send activity signal on mouse move
-    //     window.addEventListener('mousemove', sendActivity);
-    
-    //     return () => {
-    //         window.removeEventListener('mousemove', sendActivity);
-    //         ws.close(); // Close WebSocket connection when component unmounts
-    //     };
-    // }, []);
 
     return (
         <div>
