@@ -19,19 +19,6 @@ let fetchTask;
 let lastState = null;
 
 const scheduleFetchTask = () => {
-    // console.log('running scheduleFetchTask');
-    // if (fetchTask) {
-    //     fetchTask.stop(); // Stop the existing task
-    // }
-    // if (isActive()) {
-    //     // User is active, schedule more frequent updates
-    //     fetchTask = cron.schedule('*/30 * * * * *', streamDataToPostgres);
-    //     console.log('user active cron scheduled for 30 sec');
-    // } else {
-    //     // User is inactive, schedule less frequent updates
-    //     fetchTask = cron.schedule('0 * * * *', streamDataToPostgres);
-    //     console.log('user not active cron not scheduled');
-    // }
     const currentState = isActive();
     
     // Only reschedule if state has changed

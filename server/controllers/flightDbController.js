@@ -28,7 +28,6 @@ const convertGeoJson = (flights) => {
 }
 
 const getFlightsBoundingBox = async (req, res) => {
-    // const bbox = req.query.bbox;
     const minLat = req.query.minLat;
     const maxLat = req.query.maxLat;
     const minLng = req.query.minLng;

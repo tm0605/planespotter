@@ -28,6 +28,10 @@ apiApp.use('/airport', airportRoutes);
 
 apiApp.use('/activity', activityRoutes);
 
+apiApp.get('*', (_req, res) => {
+  res.status(200).json({ message: 'This is the backend' });
+})
+
 app.use(vhost('api.plane-spotter.takuyamiyamoto.com', apiApp));
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../dist')));
@@ -38,5 +42,5 @@ app.get('*', (_req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
