@@ -1,7 +1,10 @@
 import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
+import { debounce } from 'lodash';
+import WebSocket from 'ws';
 import getFlightDataAll from '../services/flightServiceBbox';
 import getPhotoLocationAll from '../services/photoLocationService';
+import sendActivity from '../services/activityService';
 import { FlightInfo } from './FlightInfo'; 
 import FlightContext from '../contexts/FlightContext';
 
@@ -246,6 +249,51 @@ export function Map() {
         }
     }, []); // Empty dependency array ensures this runs once after the first render
     
+    useEffect(() => {
+        const handleUserActivity = debounce(() => {
+        // Send activity signal to backend
+        // fetch('http://your-backend.com/api/activity', { method: 'POST' });
+            console.log('activity detected')
+            sendActivity();
+        }, 1000);
+    
+        // Listen for mouse and key events
+        window.addEventListener('mousemove', handleUserActivity);
+        window.addEventListener('keydown', handleUserActivity);
+    
+        // Cleanup listeners on component unmount
+        return () => {
+            window.removeEventListener('mousemove', handleUserActivity);
+            window.removeEventListener('keydown', handleUserActivity);
+            handleUserActivity.cancel()
+        };
+    }, []);
+
+    // useEffect(() => {
+    //     // Establish WebSocket connection
+    //     const ws = new WebSocket('ws://localhost:3000');
+    
+    //     ws.onopen = () => {
+    //         console.log('WebSocket connected');
+    //         // Send an activity signal immediately upon connection
+    //         ws.send('User active');
+    //     };
+    
+    //     const sendActivity = () => {
+    //         if (ws.readyState === WebSocket.OPEN) {
+    //             ws.send('User active');
+    //         }
+    //     };
+    
+    //     // Example: send activity signal on mouse move
+    //     window.addEventListener('mousemove', sendActivity);
+    
+    //     return () => {
+    //         window.removeEventListener('mousemove', sendActivity);
+    //         ws.close(); // Close WebSocket connection when component unmounts
+    //     };
+    // }, []);
+
     return (
         <div>
             <FlightInfo />
