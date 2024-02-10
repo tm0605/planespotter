@@ -4,7 +4,7 @@ const getAirport = async (req, res) => {
     try {
         const icao = req.query.icao_code;
 
-        const result = await pool.query(`SELECT * FROM airports WHERE icao_code='${icao}'`);
+        const result = await pool.query('SELECT * FROM airports WHERE icao_code = $1', [icao]);
         console.log(result);
         res.json(result.rows);
     } catch (err) {
