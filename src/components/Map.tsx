@@ -84,7 +84,7 @@ const airportUnselect = (map) => {
     map.current.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
 }
 
-export function Map() {
+export default function Map() {
     const mapContainer = useRef<any>(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const [lng, setLng] = useState<any>(-70.9);
