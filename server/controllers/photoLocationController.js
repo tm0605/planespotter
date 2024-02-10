@@ -72,7 +72,7 @@ const getLocations = async (req, res) => {
             'features': []
         };
         const locations = await Promise.all(locationPromises);
-        console.log(locations[0]);
+        // console.log(locations[0]);
         locations.forEach(location => {
             // const description = parseLocation(location);
             geoJson.features.push({

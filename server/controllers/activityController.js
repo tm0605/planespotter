@@ -11,7 +11,7 @@ const updateActivity = async (req, res) => {
 
 const isActive = () => {
     const THRESHOLD = 1000 * 60 * 1/2; // 1 minutes of inactivity threshold
-    console.log(`isActive = ${(Date.now() - lastActivityTimestamp) < THRESHOLD}`)
+    // console.log(`isActive = ${(Date.now() - lastActivityTimestamp) < THRESHOLD}`)
     return (Date.now() - lastActivityTimestamp) < THRESHOLD;
 }
 
@@ -23,6 +23,7 @@ const scheduleFetchTask = () => {
     
     // Only reschedule if state has changed
     if (lastState !== currentState) {
+        console.log(`isActive = ${currentState}`)
         console.log('State changed, rescheduling fetch task...');
         
         // Stop the existing task if it exists
@@ -43,7 +44,7 @@ const scheduleFetchTask = () => {
         
         lastState = currentState; // Update the last known state
     } else {
-        console.log('State unchanged, no need to reschedule.');
+        // console.log('State unchanged, no need to reschedule.');
     }
 }
 
@@ -52,7 +53,7 @@ scheduleFetchTask();
 
 // Optionally, re-evaluate the scheduling periodically
 cron.schedule('*/1 * * * *', () => {
-    console.log('Checking activity status to adjust fetch frequency...');
+    // console.log('Checking activity status to adjust fetch frequency...');
     scheduleFetchTask();
 });
 

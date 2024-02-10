@@ -7,7 +7,6 @@ const streamDataToPostgres = async () => {
     const json = await getFlightsAll();
     // Assuming 'json.response' contains your flight data array
     const flights = json;
-    console.log('running streamDataToPostgres')
 
     // Convert each flight record into a CSV string
     const csvData = flights.map(flight => {
@@ -43,7 +42,6 @@ const streamDataToPostgres = async () => {
 
     const client = await pool.connect();
     try {
-        console.log('trying');
         await client.query('BEGIN');
         await client.query('')
         await client.query('TRUNCATE TABLE flights RESTART IDENTITY');
@@ -58,7 +56,6 @@ const streamDataToPostgres = async () => {
         stream.pipe(copyStream).on('finish', async () => {
             // Handle successful completion
             await client.query('COMMIT');
-            console.log('commited');
 
         }).on('error', (error) => {
             // Handle error
@@ -68,6 +65,7 @@ const streamDataToPostgres = async () => {
         });
     } finally {
         client.release();
+        console.log('DB Updated');
     }
 }
 
