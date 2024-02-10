@@ -35,9 +35,11 @@ const getFlightsBoundingBox = async (req, res) => {
 
     const query = `
         SELECT * FROM flights
-        WHERE lat BETWEEN ${minLat} AND ${maxLat}
-        AND lng BETWEEN ${minLng} AND ${maxLng};
+        WHERE lat BETWEEN $1 AND $2
+        AND lng BETWEEN $3 AND $4;
     `;
+
+    const values = [minLat, maxLat, minLng, maxLng];
 
     try {
         // PostgreSQL type ID for numeric fields (e.g., 1700 for numeric)
@@ -46,7 +48,7 @@ const getFlightsBoundingBox = async (req, res) => {
         // For integers, you might want to ensure they are parsed as int (e.g., type ID 20 for bigint)
         types.setTypeParser(20, (val) => parseInt(val, 10));
 
-        const response = await pool.query(query);
+        const response = await pool.query(query, values);
         const flights = response.rows;
         
         if (flights.length > 0) {
