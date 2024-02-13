@@ -90,6 +90,7 @@ export default function Map() {
     const [lng, setLng] = useState<any>(-70.9);
     const [lat, setLat] = useState<any>(42.35);
     const [zoom, setZoom] = useState<any>(9);
+    let lastUpdateTimestamp = Date.now();
 
     const { selectedFlight, setSelectedFlight } = useContext(FlightContext);
     const selectedFlightRef = useRef(selectedFlight);
@@ -178,6 +179,51 @@ export default function Map() {
                     'icon-allow-overlap': true
                 }
             })
+
+            
+        const animateAircraft = () => {
+            let data = map.current.getSource('flights')._data;
+            const now = Date.now();
+            const timeElapsed = (now - lastUpdateTimestamp) / 1000;
+            if (data != null) {
+                // console.log(data.features[0].properties.flight)
+                data.features.map((flight) => {
+                    const speed = flight.properties.flight.speed;
+                    // const updated = flight.properties.flight.updated;
+                    // const distance = calculateDistance(speed, updated);
+                    const distance = speed * (timeElapsed / 3600);
+
+                    const coords = flight.geometry.coordinates;
+                    const heading = flight.properties.rotation;
+                    // const newCoords = calculateNewPosition(coords[0], coords[1], heading, distance);
+
+                    const headingRad = heading * (Math.PI / 180);
+
+                    const deltaLat = (distance * Math.cos(headingRad)) / 111.32;
+                    const deltaLng = (distance * Math.sin(headingRad)) / (111.32 * Math.cos(coords[1] * (Math.PI / 180)));
+
+                    const newLat = coords[1] + deltaLat;
+                    const newLng = coords[0] + deltaLng;
+
+                    flight.geometry.coordinates = [newLng, newLat];
+                    // let coords = flight.geometry.coordinates;
+                    // coords[0] += 0.0001; // Increment longitude
+                    // if (coords[0] > 180) {
+                    //     coords[0] -= 360;
+                    // }
+                    // flight.properties.rotation += 1;
+                })
+                
+                map.current.getSource('flights').setData(data)
+            }
+
+            lastUpdateTimestamp = now;
+        
+            // Request the next frame of the animation
+            requestAnimationFrame(animateAircraft);
+        };
+
+        animateAircraft();
         })
 
         const popup = new mapboxgl.Popup({
@@ -205,7 +251,7 @@ export default function Map() {
         setInterval(async () => {
             updateFlight(map);
             updateSelectedFlightData();
-        }, 10000);
+        }, 15000);
 
         // Trigger when clicked
         map.current.on('click', (e) => {
@@ -242,6 +288,7 @@ export default function Map() {
             // console.log(data);
         })
 
+        // Trigger when hovering on spotting locations
         map.current.on('mouseenter', 'spottingLocations', (e) => {
             // Change the cursor style as a UI indicator.
             map.current.getCanvas().style.cursor = 'pointer';
@@ -262,6 +309,7 @@ export default function Map() {
             popup.setLngLat(coordinates).setHTML(description).addTo(map.current);
         })
 
+        // Trigger when hovering out of spotting locations
         map.current.on('mouseleave', 'spottingLocations', (e) => {
             map.current.getCanvas().style.cursor = '';
             popup.remove();
