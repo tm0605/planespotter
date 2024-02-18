@@ -91,6 +91,7 @@ export default function Map() {
     const [lat, setLat] = useState<any>(42.35);
     const [zoom, setZoom] = useState<any>(9);
     let lastUpdateTimestamp = Date.now();
+    const minZoomLevel = 8;
 
     const { selectedFlight, setSelectedFlight } = useContext(FlightContext);
     const selectedFlightRef = useRef(selectedFlight);
@@ -185,7 +186,7 @@ export default function Map() {
             let data = map.current.getSource('flights')._data;
             const now = Date.now();
             const timeElapsed = (now - lastUpdateTimestamp) / 1000;
-            if (data != null) {
+            if (data != null && map.current.getZoom() >= minZoomLevel) {
                 // console.log(data.features[0].properties.flight)
                 data.features.map((flight) => {
                     const speed = flight.properties.flight.speed;
