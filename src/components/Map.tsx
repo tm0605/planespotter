@@ -11,7 +11,7 @@ import FlightContext from '../contexts/FlightContext';
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
 // Get Flight Updates and Set Data
-const updateFlight  = async (map) => {
+const updateFlightLocation  = async (map) => {
     const swLat = map.current.getBounds()._sw.lat;
     const swLng = map.current.getBounds()._sw.lng;
     const neLat = map.current.getBounds()._ne.lat;
@@ -20,12 +20,42 @@ const updateFlight  = async (map) => {
     const geojson = await getFlightData(swLat, swLng, neLat, neLng);
     
     if (geojson != '') {
-        map.current.getSource('flights').setData(geojson);
+        console.log('geojson', geojson)
+        const lastUpdateTimestamp = geojson.features[0].properties.flight.updated * 1000;
+        const timeElapsed = (Date.now() - lastUpdateTimestamp) / 1000; // Calculate time elapsed since flight updated
+
+        const updated = calculateFlightLocation(geojson, timeElapsed) // Calculate estimated location
+
+        map.current.getSource('flights').setData(updated);
     }
 }
 
+// Calculate estimated flight locaiton
+const calculateFlightLocation = (data, timeElapsed) => {
+    data.features.map((flight) => {
+        const speed = flight.properties.flight.speed;
+        const distance = speed * (timeElapsed / 3600);
+
+        const coords = flight.geometry.coordinates;
+        const heading = flight.properties.rotation;
+        
+        const headingRad = heading * (Math.PI / 180);
+
+        const deltaLat = (distance * Math.cos(headingRad)) / 111.32;
+        const deltaLng = (distance * Math.sin(headingRad)) / (111.32 * Math.cos(coords[1] * (Math.PI / 180)));
+
+        const newLat = coords[1] + deltaLat;
+        const newLng = coords[0] + deltaLng;
+
+        flight.geometry.coordinates = [newLng, newLat];
+
+    })
+
+    return data;
+}
+
 // Get Spotting Locaiton and Set Data
-const updateLocation = async (map, lat: number, lng: number) => {
+const getPhotoLocation = async (map, lat: number, lng: number) => {
     const geojson = await getPhotoLocationAll(lat, lng);
 
     if (geojson != '') {
@@ -165,7 +195,7 @@ export default function Map() {
                     ]
                 }
             });
-            updateFlight(map);
+            updateFlightLocation(map);
             map.current.addSource('spottingLocations', {
                 type: 'geojson',
                 data: null
@@ -183,48 +213,23 @@ export default function Map() {
 
             
         const animateAircraft = () => {
-            let data = map.current.getSource('flights')._data;
+            const data = map.current.getSource('flights')._data;
             const now = Date.now();
+            const updateRate = map.current.getZoom() >= minZoomLevel ? 10 : 500; // Rapid update when zoomed
             const timeElapsed = (now - lastUpdateTimestamp) / 1000;
-            if (data != null && map.current.getZoom() >= minZoomLevel) {
-                // console.log(data.features[0].properties.flight)
-                data.features.map((flight) => {
-                    const speed = flight.properties.flight.speed;
-                    // const updated = flight.properties.flight.updated;
-                    // const distance = calculateDistance(speed, updated);
-                    const distance = speed * (timeElapsed / 3600);
 
-                    const coords = flight.geometry.coordinates;
-                    const heading = flight.properties.rotation;
-                    // const newCoords = calculateNewPosition(coords[0], coords[1], heading, distance);
+            if (data != null) {
 
-                    const headingRad = heading * (Math.PI / 180);
-
-                    const deltaLat = (distance * Math.cos(headingRad)) / 111.32;
-                    const deltaLng = (distance * Math.sin(headingRad)) / (111.32 * Math.cos(coords[1] * (Math.PI / 180)));
-
-                    const newLat = coords[1] + deltaLat;
-                    const newLng = coords[0] + deltaLng;
-
-                    flight.geometry.coordinates = [newLng, newLat];
-                    // let coords = flight.geometry.coordinates;
-                    // coords[0] += 0.0001; // Increment longitude
-                    // if (coords[0] > 180) {
-                    //     coords[0] -= 360;
-                    // }
-                    // flight.properties.rotation += 1;
-                })
+                const updated = calculateFlightLocation(data, timeElapsed); // Calculate estimated location
                 
-                map.current.getSource('flights').setData(data)
+                map.current.getSource('flights').setData(updated);
             }
-
             lastUpdateTimestamp = now;
         
-            // Request the next frame of the animation
-            requestAnimationFrame(animateAircraft);
+            setTimeout(animateAircraft, updateRate) // Set update rate
         };
 
-        animateAircraft();
+        animateAircraft(); // Activate flight animation
         })
 
         const popup = new mapboxgl.Popup({
@@ -244,13 +249,14 @@ export default function Map() {
 
         // Trigger when map is moved
         map.current.on('moveend', async () => {
-            updateFlight(map);
+            // lastUpdateTimestamp = null;
+            updateFlightLocation(map);
             updateSelectedFlightData();
         });
 
         // Trigger for a certain interval
         setInterval(async () => {
-            updateFlight(map);
+            updateFlightLocation(map);
             updateSelectedFlightData();
         }, 15000);
 
@@ -285,7 +291,7 @@ export default function Map() {
         //  Trigger when clicked on airports
         map.current.on('click', 'major-airports-circle', async (e) => {
             airportSelect(map, e);
-            updateLocation(map, e.lngLat.lat, e.lngLat.lng);
+            getPhotoLocation(map, e.lngLat.lat, e.lngLat.lng);
             // console.log(data);
         })
 
