@@ -8,6 +8,7 @@ import flightRoutes from './routes/flightRoutes.js';
 import locationRoutes from './routes/photoLocationRoutes.js';
 import airportRoutes from './routes/airportRoutes.js';
 import activityRoutes from './routes/activityRoutes.js';
+import searchRoutes from './routes/searchRoutes.js';
 import vhost from 'vhost';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -28,6 +29,8 @@ apiApp.use('/photo', locationRoutes);
 apiApp.use('/airport', airportRoutes);
 
 apiApp.use('/activity', activityRoutes);
+
+apiApp.use('/search', searchRoutes);
 
 apiApp.get('*', (_req, res) => {
   res.status(200).json({ message: 'This is the backend' });
