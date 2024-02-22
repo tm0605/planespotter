@@ -1,12 +1,121 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+:root {
+  --color-bg: #222831;
+  --color-text: #EEEEEE;
+  --color-primary: #00ADB5;
+  --color-secondary: #393E46;
+
+  --main-font: 'Roboto', sans-serif;
+
+  /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; */
+  font-family: var(--main-font);
+  line-height: 1.5;
+  font-weight: 200;
+
+  /* color-scheme: light dark; */
+  color: var(--color-text);
+  background-color: var(--color-bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+header {
+    position: fixed;
+    background-image: linear-gradient(to bottom, var(--color-bg), transparent);
+    top: 0;
+    z-index: 1;
+    width: 100%;
+    min-height: 10vh;
+    justify-content: center;
+    align-items: center;
+
+}
+
+/* main {
+    display: flex;
+    flex-direction: row;
+} */
+
+nav {
+    position: relative;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    /* flex-direction: column; */
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo img {
+    width: 4rem;
+}
+
+nav a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: 0.3s ease;
+}
+
+nav input {
+    border-radius: 4px;
+    height: 5vh;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    /* justify-content: space-between; */
+    gap: 3rem;
+}
+
+.map-container {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+}
+
 .sidebar {
-    background-color: rgb(35 55 75 / 90%);
-    color: #fff;
+    display: flex;
+    flex-direction: column;
+    backdrop-filter: blur(20px);
+    /* background-color: var(--color-bg); */
+    color: var(--color-text);
     padding: 6px 12px;
-    font-family: monospace;
     z-index: 1;
     position: absolute;
-    top: 0;
+    top: 10vh;
     left: 0;
     margin: 12px;
     border-radius: 4px;
+}
+
+.sidebar * {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    nav ul {
+        display: none;
     }
+    .sidebar {
+        position: fixed;
+        margin: 0;
+        top: auto;
+        bottom: 0;
+        flex-direction: row;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+}

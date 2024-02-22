@@ -31,7 +31,9 @@ const updateFlightLocation  = async (map) => {
 }
 
 // Calculate estimated flight locaiton
-const calculateFlightLocation = (data, timeElapsed) => {
+const calculateFlightLocation = (data, timeElapsed: number) => {
+    if (timeElapsed > (60 * 30)) return data;
+
     data.features.map((flight) => {
         const speed = flight.properties.flight.speed;
         const distance = speed * (timeElapsed / 3600);
@@ -54,7 +56,7 @@ const calculateFlightLocation = (data, timeElapsed) => {
     return data;
 }
 
-// Get Spotting Locaiton and Set Data
+// Get spotting locaiton and set data
 const getPhotoLocation = async (map, lat: number, lng: number) => {
     const geojson = await getPhotoLocationAll(lat, lng);
 
@@ -63,6 +65,7 @@ const getPhotoLocation = async (map, lat: number, lng: number) => {
     }
 }
 
+// Remove spotting location from the map
 const removeLocation = (map) => {
     map.current.getSource('spottingLocations').setData({
         'type': 'FeatureCollection',
@@ -132,7 +135,8 @@ export default function Map() {
 
     useEffect(() => {
         if (map.current) return; // initialize map only once
-
+        sendActivity();
+        console.log('seinding')
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
             style: 'mapbox://styles/takuya65/clr3rb0u800hi01pzapk738ag',
@@ -143,7 +147,7 @@ export default function Map() {
         map.current.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true,
             showZoom: false
-        }))
+        }), 'bottom-right')
         
         map.current.on('move', () => {
             if (map.current) {
@@ -324,16 +328,16 @@ export default function Map() {
 
     }, [lng, lat, zoom]);
 
-    useEffect(() => {
-        const firstNavbar = document.querySelectorAll('.navbar')[0] as HTMLElement; // Select the navbar element
-        // const secondNavbar = document.querySelectorAll('.navbar')[1] as HTMLElement;
-        // if (firstNavbar && secondNavbar) {
-        if (firstNavbar) {
-            const navbarHeight = firstNavbar.offsetHeight; // Get the height of the navbar
-            // const navbarHeight = firstNavbar.offsetHeight + secondNavbar.offsetHeight; // Get the height of the navbar
-            mapContainer.current.style.height = `calc(100vh - ${navbarHeight}px)`; // Set the height of the map container
-        }
-    }, []); // Empty dependency array ensures this runs once after the first render
+    // useEffect(() => {
+    //     const firstNavbar = document.querySelectorAll('.navbar')[0] as HTMLElement; // Select the navbar element
+    //     // const secondNavbar = document.querySelectorAll('.navbar')[1] as HTMLElement;
+    //     // if (firstNavbar && secondNavbar) {
+    //     if (firstNavbar) {
+    //         const navbarHeight = firstNavbar.offsetHeight; // Get the height of the navbar
+    //         // const navbarHeight = firstNavbar.offsetHeight + secondNavbar.offsetHeight; // Get the height of the navbar
+    //         mapContainer.current.style.height = `calc(100vh - ${navbarHeight}px)`; // Set the height of the map container
+    //     }
+    // }, []); // Empty dependency array ensures this runs once after the first render
     
     useEffect(() => {
         const handleUserActivity = debounce(() => {
@@ -354,8 +358,8 @@ export default function Map() {
 
     return (
         <div>
+            <div ref={mapContainer} className='map-container' />
             <FlightInfo />
-            <div ref={mapContainer} className='map-container'  style={{width: '100vw', height: '100vh'}} />
         </div>
     )
 }
