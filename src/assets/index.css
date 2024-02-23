@@ -31,7 +31,7 @@ header {
     top: 0;
     z-index: 1;
     width: 100%;
-    min-height: 10vh;
+    height: 10vh;
     justify-content: center;
     align-items: center;
 
@@ -43,18 +43,21 @@ header {
 } */
 
 nav {
-    position: relative;
+    /* position: relative; */
     display: flex;
     justify-content: space-around;
     align-items: center;
+    width: 100%;
 }
 
 .logo {
+    /* position: relative; */
     display: flex;
     /* flex-direction: column; */
     justify-content: center;
     align-items: center;
     gap: 10px;
+    position: relative;
 }
 
 .logo img {
@@ -67,10 +70,10 @@ nav a {
     transition: 0.3s ease;
 }
 
-nav input {
+/* nav input {
     border-radius: 4px;
     height: 5vh;
-}
+} */
 
 nav ul {
     list-style: none;
@@ -89,8 +92,8 @@ nav ul {
 .sidebar {
     display: flex;
     flex-direction: column;
-    backdrop-filter: blur(20px);
-    /* background-color: var(--color-bg); */
+    /* backdrop-filter: blur(20px); */
+    background-color: var(--color-bg);
     color: var(--color-text);
     padding: 6px 12px;
     z-index: 1;
@@ -105,24 +108,52 @@ nav ul {
     margin: 0;
 }
 
-.search-results {
-    background-color: var(--color-bg);
-    color: var(--color-text);
+.searchbar {
+    position: realative;
     display: flex;
     flex-direction: column;
     /* flex-wrap: wrap; */
     width: 30vw;
-    position: relative;
+    height: 5vh;
+    /* top: 1vh; */
+    /* left: 110px; */
 }
 
-.search-results ul {
+.searchbar input {
+    border: none;
+    border-radius: 4px;
+    height: 100px;
+}
+
+.searchresults {
+    position: absolute;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    width: 30vw;
+    /* top: 100%; */
+    transform: translateY(50px);
+    overflow-y: auto;
+    max-height: 50vh;
+    border-radius: 4px;
+    z-index: 2;
+}
+
+.searchresults p {
+    position: sticky;
+    top: 0;
+}
+
+.searchresults ul {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: start;
 }
 
 @media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+    }
     nav ul {
         display: none;
     }
@@ -134,5 +165,14 @@ nav ul {
         flex-direction: row;
         gap: 1rem;
         flex-wrap: wrap;
+    }
+    .searchbar {
+        width: 50vw;
+    }
+    .searchresults {
+        width: 50vw;
+    }
+    .hamburger {
+      display: block;
     }
 }
