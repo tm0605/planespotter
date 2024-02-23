@@ -1,3 +1,5 @@
+import SearchBar from "./SearchBar";
+
 export function NavBar() {
     return (
         <nav className="navbar">
@@ -8,7 +10,7 @@ export function NavBar() {
             </div>
             <div className="hamburger">
             </div>
-            <input type="text"></input>
+            <SearchBar />
             <ul>
                 <li><a href="#about">About</a></li>
                 <li><a href="#project">Project</a></li>

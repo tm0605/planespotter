@@ -105,6 +105,23 @@ nav ul {
     margin: 0;
 }
 
+.search-results {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    display: flex;
+    flex-direction: column;
+    /* flex-wrap: wrap; */
+    width: 30vw;
+    position: relative;
+}
+
+.search-results ul {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 @media (max-width: 768px) {
     nav ul {
         display: none;
