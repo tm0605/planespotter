@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import getSearchResults from '../services/serchService';
+import { setSourceMapsEnabled } from 'process';
 
 const AirportSuggestion = ({ airport }) => {
     return (
@@ -25,6 +26,7 @@ const SearchBar = () => {
     const [flightSuggestions, setFlightSuggestions] = useState<string[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const getSuggestions = async (searchQuery: string) => {
         setIsSearching(true);
@@ -38,6 +40,21 @@ const SearchBar = () => {
         setIsSearching(false);
     };
 
+    useEffect(() => {
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+                setInput('');
+                setAirportSuggestions([]);
+                setFlightSuggestions([]);
+            }
+        };
+
+        document.addEventListener('mousedown', handleOutsideClick);
+
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideClick);
+        };
+    }, []);
 
     useEffect(() => {
             const handler = setTimeout(() => {
@@ -58,7 +75,7 @@ const SearchBar = () => {
 
     return (
         <div className='searchbar'>
-            <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder='Search' />
+            <input ref={inputRef} type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder='Search' />
             <div className='searchresults'>
                 {isSearching && <div>Searching...</div>}
                 {!isSearching && hasSearched && airportSuggestions.length == 0 && flightSuggestions.length == 0 && (
