@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Map from './components/Map';
-import { NavBar, InfoBar } from './components/NavBar';
+import NavBar from './components/NavBar';
 import FlightContext from './contexts/FlightContext';
 
 export default function App() {
