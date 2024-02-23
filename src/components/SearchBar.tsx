@@ -57,35 +57,37 @@ const SearchBar = () => {
     }, [input]);
 
     return (
-        <div className='search-results'>
+        <div className='searchbar'>
             <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder='Search' />
-            {isSearching && <div>Searching...</div>}
-            {!isSearching && hasSearched && airportSuggestions.length == 0 && flightSuggestions.length == 0 && (
-                <p>No Results Found</p>
-            )}
-            {airportSuggestions.length > 0 && (
-            <>
-                <p>Airports</p>
-                <ul>
-                    {airportSuggestions.map((suggestion, index) => (
-                        // <li key={index}>{suggestion.name} ({suggestion.iata_code})</li>
-                        <li key={index}>
-                            <AirportSuggestion airport={suggestion} />
-                        </li>
-                    ))}
-                </ul>
-            </>)}
-            {flightSuggestions.length > 0 && (
-            <>
-                <p>Real-Time Flights</p>
-                <ul>
-                    {flightSuggestions.map((suggestion, index) => (
-                        <li key={index}>
-                            <FlightSuggestion flight={suggestion} />
-                        </li>
-                    ))}
-                </ul>
-            </>)}
+            <div className='searchresults'>
+                {isSearching && <div>Searching...</div>}
+                {!isSearching && hasSearched && airportSuggestions.length == 0 && flightSuggestions.length == 0 && (
+                    <p>No Results Found</p>
+                )}
+                {airportSuggestions.length > 0 && (
+                <>
+                    <p>Airports</p>
+                    <ul>
+                        {airportSuggestions.map((suggestion, index) => (
+                            // <li key={index}>{suggestion.name} ({suggestion.iata_code})</li>
+                            <li key={index}>
+                                <AirportSuggestion airport={suggestion} />
+                            </li>
+                        ))}
+                    </ul>
+                </>)}
+                {flightSuggestions.length > 0 && (
+                <>
+                    <p>Real-Time Flights</p>
+                    <ul>
+                        {flightSuggestions.map((suggestion, index) => (
+                            <li key={index}>
+                                <FlightSuggestion flight={suggestion} />
+                            </li>
+                        ))}
+                    </ul>
+                </>)}
+            </div>
         </div>
     );
 };
