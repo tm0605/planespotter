@@ -20,7 +20,6 @@ const updateFlightLocation  = async (map) => {
     const geojson = await getFlightData(swLat, swLng, neLat, neLng);
     
     if (geojson != '') {
-        console.log('geojson', geojson)
         const lastUpdateTimestamp = geojson.features[0].properties.flight.updated * 1000;
         const timeElapsed = (Date.now() - lastUpdateTimestamp) / 1000; // Calculate time elapsed since flight updated
 
@@ -135,8 +134,8 @@ export default function Map() {
 
     useEffect(() => {
         if (map.current) return; // initialize map only once
-        sendActivity();
-        console.log('seinding')
+        sendActivity(); // Send activity to backend to update the database
+        
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
             style: 'mapbox://styles/takuya65/clr3rb0u800hi01pzapk738ag',
@@ -144,6 +143,7 @@ export default function Map() {
             zoom: zoom
         });
 
+        // Adding pitch control on the map
         map.current.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true,
             showZoom: false
@@ -215,18 +215,19 @@ export default function Map() {
                 }
             })
 
-            
+        
         const animateAircraft = () => {
             const data = map.current.getSource('flights')._data;
             const now = Date.now();
-            const updateRate = map.current.getZoom() >= minZoomLevel ? 10 : 500; // Rapid update when zoomed
+            const updateRate = map.current.getZoom() >= minZoomLevel ? 100 : 500; // Rapid update when zoomed
             const timeElapsed = (now - lastUpdateTimestamp) / 1000;
-
-            if (data != null) {
+            
+            // If planes are within the map and not zoomed out too far
+            if (data != null && map.current.getZoom() > 4.5) {
 
                 const updated = calculateFlightLocation(data, timeElapsed); // Calculate estimated location
                 
-                map.current.getSource('flights').setData(updated);
+                map.current.getSource('flights').setData(updated); // Update plane location for animation
             }
             lastUpdateTimestamp = now;
         
@@ -241,6 +242,7 @@ export default function Map() {
             closeOnClick: false
         }).setMaxWidth("275px");
 
+        // Update the information on the sidebar if aircraft selected
         const updateSelectedFlightData = () => {
             if (selectedFlightRef.current == null) return;
             const sourceData = map.current.getSource('flights')._data;
@@ -253,7 +255,6 @@ export default function Map() {
 
         // Trigger when map is moved
         map.current.on('moveend', async () => {
-            // lastUpdateTimestamp = null;
             updateFlightLocation(map);
             updateSelectedFlightData();
         });
@@ -274,7 +275,6 @@ export default function Map() {
 
         map.current.on('mouseleave', 'flights', (e) => {
             if (selectedFlightRef.current == null) {
-                // console.log(selectedFlightRef.current);
                 flightUnselect(map);
             }
         })
@@ -296,7 +296,6 @@ export default function Map() {
         map.current.on('click', 'major-airports-circle', async (e) => {
             airportSelect(map, e);
             getPhotoLocation(map, e.lngLat.lat, e.lngLat.lng);
-            // console.log(data);
         })
 
         // Trigger when hovering on spotting locations

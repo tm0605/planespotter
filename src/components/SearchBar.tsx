@@ -24,35 +24,30 @@ const SearchBar = () => {
     const [airportSuggestions, setAirportSuggestions] = useState<string[]>([]);
     const [flightSuggestions, setFlightSuggestions] = useState<string[]>([]);
     const [isSearching, setIsSearching] = useState(false);
-
-    // const debounce = (func: Function, delay: number) => {
-    //     let timer: NodeJS.Timeout;
-    //     return function (...args: any) {
-    //         clearTimeout(timer);
-    //         timer = setTimeout(() => {
-    //             func(...args);
-    //         }, delay);
-    //     };
-    // };
+    const [hasSearched, setHasSearched] = useState(false);
 
     const getSuggestions = async (searchQuery: string) => {
         setIsSearching(true);
+        setAirportSuggestions([]);
+        setFlightSuggestions([]);
+
         const response = await getSearchResults(searchQuery);
         
-        console.log(response)
         setAirportSuggestions(response.airports);
         setFlightSuggestions(response.searchFlights)
         setIsSearching(false);
     };
 
-    // const debounceGetSuggestions = debounce(getSuggestions, 1000);
 
     useEffect(() => {
             const handler = setTimeout(() => {
             if (input.length > 2) {
                 getSuggestions(input);
+                setHasSearched(true);
             } else {
                 setAirportSuggestions([]);
+                setFlightSuggestions([]);
+                setHasSearched(false);
             }
         }, 500)
 
@@ -65,23 +60,32 @@ const SearchBar = () => {
         <div className='search-results'>
             <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder='Search' />
             {isSearching && <div>Searching...</div>}
-            <p>Airports</p>
-            <ul>
-                {airportSuggestions.map((suggestion, index) => (
-                    // <li key={index}>{suggestion.name} ({suggestion.iata_code})</li>
-                    <li key={index}>
-                        <AirportSuggestion airport={suggestion} />
-                    </li>
-                ))}
-            </ul>
-            <p>Flights</p>
-            <ul>
-                {flightSuggestions.map((suggestion, index) => (
-                    <li key={index}>
-                        <FlightSuggestion flight={suggestion} />
-                    </li>
-                ))}
-            </ul>
+            {!isSearching && hasSearched && airportSuggestions.length == 0 && flightSuggestions.length == 0 && (
+                <p>No Results Found</p>
+            )}
+            {airportSuggestions.length > 0 && (
+            <>
+                <p>Airports</p>
+                <ul>
+                    {airportSuggestions.map((suggestion, index) => (
+                        // <li key={index}>{suggestion.name} ({suggestion.iata_code})</li>
+                        <li key={index}>
+                            <AirportSuggestion airport={suggestion} />
+                        </li>
+                    ))}
+                </ul>
+            </>)}
+            {flightSuggestions.length > 0 && (
+            <>
+                <p>Real-Time Flights</p>
+                <ul>
+                    {flightSuggestions.map((suggestion, index) => (
+                        <li key={index}>
+                            <FlightSuggestion flight={suggestion} />
+                        </li>
+                    ))}
+                </ul>
+            </>)}
         </div>
     );
 };
