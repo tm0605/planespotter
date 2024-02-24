@@ -14,7 +14,6 @@ export default function App() {
             </header>
 
             <main>
-                {/* <InfoBar /> */}
                 <FlightContext.Provider value={{ selectedFlight, setSelectedFlight }}>
                     <Map />
                 </FlightContext.Provider>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import getSearchResults from '../services/serchService';
-import { setSourceMapsEnabled } from 'process';
+// import { setSourceMapsEnabled } from 'process';
 
 const AirportSuggestion = ({ airport }) => {
     return (
@@ -82,7 +82,7 @@ const SearchBar = () => {
                     <p>No Results Found</p>
                 )}
                 {airportSuggestions.length > 0 && (
-                <>
+                <div className='airport'>
                     <p>Airports</p>
                     <ul>
                         {airportSuggestions.map((suggestion, index) => (
@@ -92,9 +92,9 @@ const SearchBar = () => {
                             </li>
                         ))}
                     </ul>
-                </>)}
+                </div>)}
                 {flightSuggestions.length > 0 && (
-                <>
+                <div className='flight'>
                     <p>Real-Time Flights</p>
                     <ul>
                         {flightSuggestions.map((suggestion, index) => (
@@ -103,7 +103,7 @@ const SearchBar = () => {
                             </li>
                         ))}
                     </ul>
-                </>)}
+                </div>)}
             </div>
         </div>
     );

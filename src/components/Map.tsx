@@ -11,11 +11,11 @@ import FlightContext from '../contexts/FlightContext';
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
 // Get Flight Updates and Set Data
-const updateFlightLocation  = async (map) => {
-    const swLat = map.current.getBounds()._sw.lat;
-    const swLng = map.current.getBounds()._sw.lng;
-    const neLat = map.current.getBounds()._ne.lat;
-    const neLng = map.current.getBounds()._ne.lng;
+const updateFlightLocation  = async (map: mapboxgl.Map) => {
+    const swLat = map.getBounds()._sw.lat;
+    const swLng = map.getBounds()._sw.lng;
+    const neLat = map.getBounds()._ne.lat;
+    const neLng = map.getBounds()._ne.lng;
 
     const geojson = await getFlightData(swLat, swLng, neLat, neLng);
     
@@ -25,7 +25,7 @@ const updateFlightLocation  = async (map) => {
 
         const updated = calculateFlightLocation(geojson, timeElapsed) // Calculate estimated location
 
-        map.current.getSource('flights').setData(updated);
+        map.getSource('flights').setData(updated);
     }
 }
 
@@ -56,31 +56,31 @@ const calculateFlightLocation = (data, timeElapsed: number) => {
 }
 
 // Get spotting locaiton and set data
-const getPhotoLocation = async (map, lat: number, lng: number) => {
+const getPhotoLocation = async (map: mapboxgl.Map, lat: number, lng: number) => {
     const geojson = await getPhotoLocationAll(lat, lng);
 
     if (geojson != '') {
-        map.current.getSource('spottingLocations').setData(geojson);
+        map.getSource('spottingLocations').setData(geojson);
     }
 }
 
 // Remove spotting location from the map
-const removeLocation = (map) => {
-    map.current.getSource('spottingLocations').setData({
+const removeLocation = (map: mapboxgl.Map) => {
+    map.getSource('spottingLocations').setData({
         'type': 'FeatureCollection',
         'features': []
     });
 }
 
-const flightSelect = (map, e) => {
-    map.current.setLayoutProperty('flights', 'icon-image',
+const flightSelect = (map: mapboxgl.Map, e: mapboxgl.MapMouseEvent) => {
+    map.setLayoutProperty('flights', 'icon-image',
     [
         'match',
         ['get', 'id'],
         e.features[0].properties.id, 'small_plane_selected',
         'small_plane'
     ])
-    map.current.setPaintProperty('flights', 'text-color',
+    map.setPaintProperty('flights', 'text-color',
     [
         'match',
         ['get', 'id'],
@@ -89,20 +89,20 @@ const flightSelect = (map, e) => {
     ])
 }
 
-const flightUnselect = (map) => {
-    map.current.setLayoutProperty('flights', 'icon-image', 'small_plane')
-    map.current.setPaintProperty('flights', 'text-color', '#ffffff')
+const flightUnselect = (map: mapboxgl.Map) => {
+    map.setLayoutProperty('flights', 'icon-image', 'small_plane')
+    map.setPaintProperty('flights', 'text-color', '#ffffff')
 }
 
-const airportSelect = (map, e) => {
-    map.current.setPaintProperty('major-airports-circle', 'circle-color', 
+const airportSelect = (map: mapboxgl.Map, e: mapboxgl.MapMouseEvent) => {
+    map.setPaintProperty('major-airports-circle', 'circle-color', 
     [
         'match',
         ['get', 'iata_code'],
         e.features[0].properties.iata_code, '#8fffab',
         '#ffffff'
     ])
-    map.current.setPaintProperty('major-airports-text', 'text-color',
+    map.setPaintProperty('major-airports-text', 'text-color',
     [
         'match',
         ['get', 'iata_code'],
@@ -111,9 +111,9 @@ const airportSelect = (map, e) => {
     ])
 }
 
-const airportUnselect = (map) => {
-    map.current.setPaintProperty('major-airports-text', 'text-color', '#ffffff')
-    map.current.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
+const airportUnselect = (map: mapboxgl.Map) => {
+    map.setPaintProperty('major-airports-text', 'text-color', '#ffffff')
+    map.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
 }
 
 export default function Map() {
@@ -199,7 +199,7 @@ export default function Map() {
                     ]
                 }
             });
-            updateFlightLocation(map);
+            updateFlightLocation(map.current);
             map.current.addSource('spottingLocations', {
                 type: 'geojson',
                 data: null
@@ -255,47 +255,47 @@ export default function Map() {
 
         // Trigger when map is moved
         map.current.on('moveend', async () => {
-            updateFlightLocation(map);
+            updateFlightLocation(map.current);
             updateSelectedFlightData();
         });
 
         // Trigger for a certain interval
         setInterval(async () => {
-            updateFlightLocation(map);
+            updateFlightLocation(map.current);
             updateSelectedFlightData();
         }, 15000);
 
         // Trigger when clicked
         map.current.on('click', (e) => {
-            flightUnselect(map);
-            airportUnselect(map);
+            flightUnselect(map.current);
+            airportUnselect(map.current);
             setSelectedFlight(null);
-            removeLocation(map);
+            removeLocation(map.current);
         })
 
         map.current.on('mouseleave', 'flights', (e) => {
             if (selectedFlightRef.current == null) {
-                flightUnselect(map);
+                flightUnselect(map.current);
             }
         })
 
         map.current.on('mouseover', 'flights', (e) => {
             if (selectedFlightRef.current == null) {
-                flightSelect(map, e);
+                flightSelect(map.current, e);
             }
         })
 
         // Tirgger when clicked on flights
         map.current.on('click', 'flights', (e) => {
-            flightSelect(map, e);
+            flightSelect(map.current, e);
             const flightData = JSON.parse(e.features[0].properties.flight);
             setSelectedFlight(flightData);
         })
 
         //  Trigger when clicked on airports
         map.current.on('click', 'major-airports-circle', async (e) => {
-            airportSelect(map, e);
-            getPhotoLocation(map, e.lngLat.lat, e.lngLat.lng);
+            airportSelect(map.current, e);
+            getPhotoLocation(map.current, e.lngLat.lat, e.lngLat.lng);
         })
 
         // Trigger when hovering on spotting locations
@@ -326,17 +326,6 @@ export default function Map() {
         })
 
     }, [lng, lat, zoom]);
-
-    // useEffect(() => {
-    //     const firstNavbar = document.querySelectorAll('.navbar')[0] as HTMLElement; // Select the navbar element
-    //     // const secondNavbar = document.querySelectorAll('.navbar')[1] as HTMLElement;
-    //     // if (firstNavbar && secondNavbar) {
-    //     if (firstNavbar) {
-    //         const navbarHeight = firstNavbar.offsetHeight; // Get the height of the navbar
-    //         // const navbarHeight = firstNavbar.offsetHeight + secondNavbar.offsetHeight; // Get the height of the navbar
-    //         mapContainer.current.style.height = `calc(100vh - ${navbarHeight}px)`; // Set the height of the map container
-    //     }
-    // }, []); // Empty dependency array ensures this runs once after the first render
     
     useEffect(() => {
         const handleUserActivity = debounce(() => {
@@ -356,9 +345,9 @@ export default function Map() {
     }, []);
 
     return (
-        <div>
+        <>
             <div ref={mapContainer} className='map-container' />
             <FlightInfo />
-        </div>
+        </>
     )
 }
