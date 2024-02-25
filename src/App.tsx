@@ -9,15 +9,15 @@ export default function App() {
 
     return (
         <>
-            <header>
-                <NavBar />
-            </header>
+            <FlightContext.Provider value={{ selectedFlight, setSelectedFlight }}>
+                <header>
+                    <NavBar />
+                </header>
 
-            <main>
-                <FlightContext.Provider value={{ selectedFlight, setSelectedFlight }}>
+                <main>
                     <Map />
-                </FlightContext.Provider>
-            </main>
+                </main>
+            </FlightContext.Provider>
         </>
     );
 }

@@ -30,7 +30,7 @@ export function FlightInfo() {
                 <p>Registration: {reg_number}</p>
                 <p>Altitude: {alt.toFixed(0)} | {v_speed}</p>
                 <p>Speed: {speed}</p>
-                <p>Direction: {dir.toFixed(0)}</p>
+                <p>Direction: {dir != null && dir.toFixed(0)}</p>
                 <p>Latitude: {lat.toFixed(2)} Longitude: {lng.toFixed(2)}</p>
                 <p>Squawk: {squawk}</p>
             </div>

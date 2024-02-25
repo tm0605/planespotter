@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 
 interface FlightData {
+    hex: string;
     flight_icao: string;
     flight_iata: string;
     dep_icao: string;

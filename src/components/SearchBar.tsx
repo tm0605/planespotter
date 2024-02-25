@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import getSearchResults from '../services/serchService';
+import FlightContext from '../contexts/FlightContext';
 // import { setSourceMapsEnabled } from 'process';
 
 const AirportSuggestion = ({ airport }) => {
@@ -27,7 +28,14 @@ const SearchBar = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    
+    const { setSelectedFlight } = useContext(FlightContext);
 
+    const handleClickFlight = (data) => {
+        console.log(data);
+        setSelectedFlight(data);
+    }
+    
     const getSuggestions = async (searchQuery: string) => {
         setIsSearching(true);
         setAirportSuggestions([]);
@@ -36,16 +44,15 @@ const SearchBar = () => {
         const response = await getSearchResults(searchQuery);
         
         setAirportSuggestions(response.airports);
-        setFlightSuggestions(response.searchFlights)
+        setFlightSuggestions(response.searchFlights);
         setIsSearching(false);
     };
+
 
     useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
             if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
                 setInput('');
-                setAirportSuggestions([]);
-                setFlightSuggestions([]);
             }
         };
 
@@ -57,7 +64,7 @@ const SearchBar = () => {
     }, []);
 
     useEffect(() => {
-            const handler = setTimeout(() => {
+        const handler = setTimeout(() => {
             if (input.length > 2) {
                 getSuggestions(input);
                 setHasSearched(true);
@@ -74,8 +81,8 @@ const SearchBar = () => {
     }, [input]);
 
     return (
-        <div className='searchbar'>
-            <input ref={inputRef} type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder='Search' />
+        <div ref={inputRef} className='searchbar'>
+            <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder='Search' />
             <div className='searchresults'>
                 {isSearching && <div>Searching...</div>}
                 {!isSearching && hasSearched && airportSuggestions.length == 0 && flightSuggestions.length == 0 && (
@@ -98,7 +105,7 @@ const SearchBar = () => {
                     <p>Real-Time Flights</p>
                     <ul>
                         {flightSuggestions.map((suggestion, index) => (
-                            <li key={index}>
+                            <li key={index} onClick={() => handleClickFlight(suggestion)}>
                                 <FlightSuggestion flight={suggestion} />
                             </li>
                         ))}

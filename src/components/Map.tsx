@@ -72,19 +72,19 @@ const removeLocation = (map: mapboxgl.Map) => {
     });
 }
 
-const flightSelect = (map: mapboxgl.Map, e: mapboxgl.MapMouseEvent) => {
+const flightSelect = (map: mapboxgl.Map, hex: string) => {
     map.setLayoutProperty('flights', 'icon-image',
     [
         'match',
         ['get', 'id'],
-        e.features[0].properties.id, 'small_plane_selected',
+        hex, 'small_plane_selected',
         'small_plane'
     ])
     map.setPaintProperty('flights', 'text-color',
     [
         'match',
         ['get', 'id'],
-        e.features[0].properties.id, '#8fffab',
+        hex, '#8fffab',
         '#ffffff'
     ])
 }
@@ -209,7 +209,7 @@ export default function Map() {
                 'type': 'symbol',
                 'source': 'spottingLocations',
                 'layout': {
-                    'icon-image': 'rocket',
+                    'icon-image': 'attraction',
                     'icon-padding': 0,
                     'icon-allow-overlap': true
                 }
@@ -287,7 +287,7 @@ export default function Map() {
 
         // Tirgger when clicked on flights
         map.current.on('click', 'flights', (e) => {
-            flightSelect(map.current, e);
+            // flightSelect(map.current, e);
             const flightData = JSON.parse(e.features[0].properties.flight);
             setSelectedFlight(flightData);
         })
@@ -326,10 +326,25 @@ export default function Map() {
         })
 
     }, [lng, lat, zoom]);
+
+    useEffect(() => {
+        // if (map.current) return; // initialize map only once
+        if (selectedFlight == null && map.current != null) {
+            // console.log('hi')
+            // flightUnselect(map.current);
+        }
+        if (selectedFlight != null) {
+            flightSelect(map.current, selectedFlight.hex)
+            map.current.flyTo({
+                center: [selectedFlight.lng, selectedFlight.lat],
+                essential: true
+            });
+        }
+    }, [selectedFlight])
     
     useEffect(() => {
         const handleUserActivity = debounce(() => {
-            sendActivity();
+            // sendActivity();
         }, 1000);
     
         // Listen for mouse and key events
