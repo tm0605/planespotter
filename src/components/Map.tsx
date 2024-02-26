@@ -7,8 +7,18 @@ import getPhotoLocationAll from '../services/photoLocationService';
 import sendActivity from '../services/activityService';
 import { FlightInfo } from './FlightInfo'; 
 import FlightContext from '../contexts/FlightContext';
+import AirportContext from '../contexts/AirportContext';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
+
+interface AirportData {
+    name: string;
+    iata_code: string;
+    icao_code: string;
+    lat: number;
+    lng: number;
+    country_code: string;
+}
 
 // Get Flight Updates and Set Data
 const updateFlightLocation  = async (map: mapboxgl.Map) => {
@@ -94,19 +104,19 @@ const flightUnselect = (map: mapboxgl.Map) => {
     map.setPaintProperty('flights', 'text-color', '#ffffff')
 }
 
-const airportSelect = (map: mapboxgl.Map, e: mapboxgl.MapMouseEvent) => {
+const airportSelect = (map: mapboxgl.Map, iata_code: string) => {
     map.setPaintProperty('major-airports-circle', 'circle-color', 
     [
         'match',
         ['get', 'iata_code'],
-        e.features[0].properties.iata_code, '#8fffab',
+        iata_code, '#8fffab',
         '#ffffff'
     ])
     map.setPaintProperty('major-airports-text', 'text-color',
     [
         'match',
         ['get', 'iata_code'],
-        e.features[0].properties.iata_code, '#8fffab',
+        iata_code, '#8fffab',
         '#ffffff'
     ])
 }
@@ -119,22 +129,21 @@ const airportUnselect = (map: mapboxgl.Map) => {
 export default function Map() {
     const mapContainer = useRef<any>(null);
     const map = useRef<mapboxgl.Map | null>(null);
+    const mapLoaded = useRef<boolean>(false);
     const [lng, setLng] = useState<any>(-70.9);
     const [lat, setLat] = useState<any>(42.35);
     const [zoom, setZoom] = useState<any>(9);
     let lastUpdateTimestamp = Date.now();
     const minZoomLevel = 8;
 
+    const [hoveringFlight, setHoveringFlight] = useState<any>(null);
     const { selectedFlight, setSelectedFlight } = useContext(FlightContext);
-    const selectedFlightRef = useRef(selectedFlight);
-
-    useEffect(() => {
-        selectedFlightRef.current = selectedFlight;
-    }, [selectedFlight]);
+    const { selectedAirport, setSelectedAirport } = useContext(AirportContext)
+    // const selectedFlightRef = useRef(selectedFlight);
 
     useEffect(() => {
         if (map.current) return; // initialize map only once
-        sendActivity(); // Send activity to backend to update the database
+        // sendActivity(); // Send activity to backend to update the database
         
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
@@ -232,6 +241,8 @@ export default function Map() {
             lastUpdateTimestamp = now;
         
             setTimeout(animateAircraft, updateRate) // Set update rate
+
+            mapLoaded.current = true;
         };
 
         animateAircraft(); // Activate flight animation
@@ -243,59 +254,65 @@ export default function Map() {
         }).setMaxWidth("275px");
 
         // Update the information on the sidebar if aircraft selected
-        const updateSelectedFlightData = () => {
-            if (selectedFlightRef.current == null) return;
-            const sourceData = map.current.getSource('flights')._data;
-            const updatedFlight = sourceData.features.find(flight => flight.properties.id === selectedFlightRef.current.hex);
+        // const updateSelectedFlightData = () => {
+        //     if (selectedFlightRef.current == null) return;
+        //     const sourceData = map.current.getSource('flights')._data;
+        //     const updatedFlight = sourceData.features.find(flight => flight.properties.id === selectedFlightRef.current.hex);
 
-            if (updatedFlight) {
-                setSelectedFlight(updatedFlight.properties.flight);
-            }
-        }
+        //     if (updatedFlight) {
+        //         setSelectedFlight(updatedFlight.properties.flight);
+        //     }
+        // }
 
         // Trigger when map is moved
         map.current.on('moveend', async () => {
             updateFlightLocation(map.current);
-            updateSelectedFlightData();
+            // updateSelectedFlightData();
         });
 
         // Trigger for a certain interval
         setInterval(async () => {
             updateFlightLocation(map.current);
-            updateSelectedFlightData();
+            // updateSelectedFlightData();
         }, 15000);
 
         // Trigger when clicked
         map.current.on('click', (e) => {
-            flightUnselect(map.current);
-            airportUnselect(map.current);
-            setSelectedFlight(null);
-            removeLocation(map.current);
-        })
-
-        map.current.on('mouseleave', 'flights', (e) => {
-            if (selectedFlightRef.current == null) {
-                flightUnselect(map.current);
+            const features = map.current.queryRenderedFeatures(e.point, {
+                layers: ['flights', 'major-airports-circle']
+            })
+            if (features.length === 0) { // When layers other than flights and airports are selected
+                setSelectedFlight(null);
+                setSelectedAirport(null);
+                removeLocation(map.current);
             }
         })
 
-        map.current.on('mouseover', 'flights', (e) => {
-            if (selectedFlightRef.current == null) {
-                flightSelect(map.current, e);
-            }
+        map.current.on('mouseout', 'flights', (e) => {
+            map.current.getCanvas().style.cursor = '';
+
+            setHoveringFlight(null);
+        })
+
+        map.current.on('mouseenter', 'flights', (e) => {
+            map.current.getCanvas().style.cursor = 'pointer';
+
+            const flightData = JSON.parse(e.features[0].properties.flight);
+            setHoveringFlight(flightData);
         })
 
         // Tirgger when clicked on flights
         map.current.on('click', 'flights', (e) => {
-            // flightSelect(map.current, e);
             const flightData = JSON.parse(e.features[0].properties.flight);
             setSelectedFlight(flightData);
         })
 
         //  Trigger when clicked on airports
         map.current.on('click', 'major-airports-circle', async (e) => {
-            airportSelect(map.current, e);
-            getPhotoLocation(map.current, e.lngLat.lat, e.lngLat.lng);
+            const airportData = e.features[0].properties
+            airportData.lat = e.lngLat.lat;
+            airportData.lng = e.lngLat.lng;
+            setSelectedAirport(airportData);
         })
 
         // Trigger when hovering on spotting locations
@@ -325,22 +342,42 @@ export default function Map() {
             popup.remove();
         })
 
-    }, [lng, lat, zoom]);
+    }, []);
 
     useEffect(() => {
-        // if (map.current) return; // initialize map only once
-        if (selectedFlight == null && map.current != null) {
-            // console.log('hi')
-            // flightUnselect(map.current);
-        }
-        if (selectedFlight != null) {
+        if (!mapLoaded.current) return;
+
+        if (selectedFlight != null) { // If flight selected
             flightSelect(map.current, selectedFlight.hex)
             map.current.flyTo({
                 center: [selectedFlight.lng, selectedFlight.lat],
                 essential: true
             });
-        }
+        } else flightUnselect(map.current);
     }, [selectedFlight])
+
+    useEffect(() => {
+        if (!mapLoaded.current) return; // If map not loaded
+
+        if (selectedFlight != null) return; // If flight selected
+
+        if (hoveringFlight != null) flightSelect(map.current, hoveringFlight.hex); // If flight hovered
+        else flightUnselect(map.current);
+    }, [hoveringFlight])
+
+    useEffect(() => {
+        if (!mapLoaded.current) return;
+
+        if (selectedAirport != null) {
+            airportSelect(map.current, selectedAirport.iata_code);
+            getPhotoLocation(map.current, selectedAirport.lat, selectedAirport.lng);
+            map.current.flyTo({
+                center: [selectedAirport.lng, selectedAirport.lat],
+                essential: false,
+                zoom: 13,
+            })
+        } else airportUnselect(map.current);
+    }, [selectedAirport])
     
     useEffect(() => {
         const handleUserActivity = debounce(() => {
