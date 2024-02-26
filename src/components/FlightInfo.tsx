@@ -23,16 +23,16 @@ export function FlightInfo() {
 
         return (
             <div className="sidebar">
-                <h2>{flight_icao} | {flight_iata}</h2>
-                <h3>{dep_icao} - {arr_icao}</h3>
-                <p>{dep_iata} - {arr_iata}</p>
-                <p>Aircraft: {aircraft}</p>
-                <p>Registration: {reg_number}</p>
-                <p>Altitude: {alt.toFixed(0)} | {v_speed}</p>
-                <p>Speed: {speed}</p>
+                <h2>{flight_icao != null && flight_icao} | {flight_iata != null && flight_iata}</h2>
+                <h3>{dep_icao != null && dep_icao} - {arr_icao != null && arr_icao}</h3>
+                <p>{dep_iata != null && dep_iata} - {arr_iata != null && arr_iata}</p>
+                <p>Aircraft: {aircraft != null && aircraft}</p>
+                <p>Registration: {reg_number != null && reg_number}</p>
+                <p>Altitude: {alt != null && alt.toFixed(0)} | {v_speed != null && v_speed}</p>
+                <p>Speed: {speed != null && speed}</p>
                 <p>Direction: {dir != null && dir.toFixed(0)}</p>
-                <p>Latitude: {lat.toFixed(2)} Longitude: {lng.toFixed(2)}</p>
-                <p>Squawk: {squawk}</p>
+                <p>Latitude: {lat != null && lat.toFixed(2)} Longitude: {lng != null && lng.toFixed(2)}</p>
+                <p>Squawk: {squawk != null && squawk}</p>
             </div>
         )
     }
