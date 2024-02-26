@@ -5,7 +5,7 @@ import { debounce } from 'lodash';
 import getFlightData from '../services/flightService';
 import getPhotoLocationAll from '../services/photoLocationService';
 import sendActivity from '../services/activityService';
-import { FlightInfo } from './FlightInfo'; 
+import FlightInfo from './FlightInfo'; 
 import FlightContext from '../contexts/FlightContext';
 import AirportContext from '../contexts/AirportContext';
 
