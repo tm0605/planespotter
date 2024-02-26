@@ -27,6 +27,7 @@
 
 header {
     position: fixed;
+    display: flex;
     background-image: linear-gradient(to bottom, var(--color-bg), transparent);
     top: 0;
     left: 0;
@@ -38,11 +39,6 @@ header {
 
 }
 
-/* main {
-    display: flex;
-    flex-direction: row;
-} */
-
 nav {
     /* position: relative; */
     display: flex;
@@ -52,7 +48,6 @@ nav {
 }
 
 .logo {
-    /* position: relative; */
     display: flex;
     /* flex-direction: column; */
     justify-content: center;
@@ -69,19 +64,6 @@ nav a {
     color: var(--color-text);
     text-decoration: none;
     transition: 0.3s ease;
-}
-
-/* nav input {
-    border-radius: 4px;
-    height: 5vh;
-} */
-
-nav ul {
-    list-style: none;
-    display: flex;
-    align-items: center;
-    /* justify-content: space-between; */
-    gap: 3rem;
 }
 
 .map-container {
@@ -108,7 +90,7 @@ nav ul {
 }
 
 .sidebar * {
-    margin: 0;
+    margin: 4px 0;
 }
 
 .searchbar {
@@ -117,15 +99,17 @@ nav ul {
     flex-direction: column;
     /* flex-wrap: wrap; */
     width: 30vw;
-    height: 5vh;
+    /* height: 5vh; */
     /* top: 1vh; */
     /* left: 110px; */
 }
 
 .searchbar input {
+    color: var(--color-text);
+    background-color: var(--color-bg);
     border: none;
     border-radius: 4px;
-    height: 100px;
+    height: 5vh;
 }
 
 .searchresults {
@@ -136,23 +120,27 @@ nav ul {
     /* top: 100%; */
     transform: translateY(50px);
     overflow-y: auto;
-    max-height: 50vh;
+    max-height: 70vh;
     border-radius: 4px;
     z-index: 2;
 }
 
 .searchresults p {
-    background-color: var(--color-bg);
+    background-color: var(--color-secondary);
     position: sticky;
     top: 0;
+    margin: 0;
+    padding: 4px 16px;
 }
 
 .searchresults .airport {
+    height: 100%;
     position: relative;
 }
 
 .searchresults .flight {
     position: relative;
+
 }
 
 .searchresults ul {
@@ -160,6 +148,16 @@ nav ul {
     flex-direction: column;
     justify-content: center;
     align-items: start;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.searchresults ul li {
+    height: 100%;
+    width: calc(100% - 32px);
+    margin: 0;
+    padding: 16px;
 }
 
 .searchresults ul li:hover {
@@ -167,6 +165,13 @@ nav ul {
 }
 
 @media (max-width: 768px) {
+    .logo {
+        position: fixed;
+        bottom: 0;
+    }
+    .logo img {
+        width: 3rem;
+    }
     nav {
         flex-direction: column;
     }
@@ -186,7 +191,7 @@ nav ul {
         width: 70vw;
     }
     .searchresults {
-        width: 50vw;
+        width: 70vw;
     }
     .hamburger {
       display: block;

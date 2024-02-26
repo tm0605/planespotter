@@ -7,8 +7,6 @@ const AirportSuggestion = ({ airport }) => {
     return (
         <div>
             <strong>{airport.name}</strong> ({airport.iata_code} | {airport.icao_code})
-            {/* Locaiton: {airport.lat}, {airport.lng}
-            Country: {airport.country_code} */}
         </div>
     );
 };
@@ -33,12 +31,13 @@ const SearchBar = () => {
     const { setSelectedAirport } = useContext(AirportContext);
 
     const handleClickFlight = (data) => {
-        // console.log(data);
         setSelectedFlight(data);
+        setInput('');
     }
 
     const handleClickAirport = (data) => {
-        setSelectedAirport(data)
+        setSelectedAirport(data);
+        setInput('');
     }
     
     const getSuggestions = async (searchQuery: string) => {
@@ -49,7 +48,7 @@ const SearchBar = () => {
         const response = await getSearchResults(searchQuery);
         
         setAirportSuggestions(response.airports);
-        setFlightSuggestions(response.searchFlights);
+        setFlightSuggestions(response.flights);
         setIsSearching(false);
     };
 
@@ -78,7 +77,7 @@ const SearchBar = () => {
                 setFlightSuggestions([]);
                 setHasSearched(false);
             }
-        }, 500)
+        }, 200)
 
         return () => {
             clearTimeout(handler);
@@ -95,10 +94,9 @@ const SearchBar = () => {
                 )}
                 {airportSuggestions.length > 0 && (
                 <div className='airport'>
-                    <p>Airports</p>
+                    <p>Airports ({airportSuggestions.length} results)</p>
                     <ul>
                         {airportSuggestions.map((suggestion, index) => (
-                            // <li key={index}>{suggestion.name} ({suggestion.iata_code})</li>
                             <li key={index} onClick={() => handleClickAirport(suggestion)}>
                                 <AirportSuggestion airport={suggestion} />
                             </li>
@@ -107,7 +105,7 @@ const SearchBar = () => {
                 </div>)}
                 {flightSuggestions.length > 0 && (
                 <div className='flight'>
-                    <p>Real-Time Flights</p>
+                    <p>Real-Time Flights ({flightSuggestions.length} results)</p>
                     <ul>
                         {flightSuggestions.map((suggestion, index) => (
                             <li key={index} onClick={() => handleClickFlight(suggestion)}>

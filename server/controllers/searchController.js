@@ -33,10 +33,8 @@ const getSearchResults = async (req, res) => {
     const searchQuery = req.query.searchQuery;
 
     const airportRes = await searchAirports(searchQuery);
-    console.log(airportRes);
     const flightRes = await searchFlights(searchQuery);
-    console.log(flightRes);
-    res.status(200).json({ airports: airportRes, searchFlights: flightRes});
+    res.status(200).json({ airports: airportRes, flights: flightRes});
 }
 
 export default getSearchResults;

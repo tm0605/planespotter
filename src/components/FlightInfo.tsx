@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import FlightContext from "../contexts/FlightContext";
 
-export function FlightInfo() {
+const FlightInfo = ()  => {
     const { selectedFlight } = useContext(FlightContext);
 
     if (selectedFlight != null) {
@@ -23,6 +23,7 @@ export function FlightInfo() {
 
         return (
             <div className="sidebar">
+                <img src="//cdn.jetphotos.com/400/6/79131_1435673287.jpg" alt="JA8985 - Boeing 777-246 - Japan Airlines (JAL)" title="Photo of JA8985 - Boeing 777-246 - Japan Airlines (JAL)" />
                 <h2>{flight_icao != null && flight_icao} | {flight_iata != null && flight_iata}</h2>
                 <h3>{dep_icao != null && dep_icao} - {arr_icao != null && arr_icao}</h3>
                 <p>{dep_iata != null && dep_iata} - {arr_iata != null && arr_iata}</p>
@@ -37,3 +38,5 @@ export function FlightInfo() {
         )
     }
 }
+
+export default FlightInfo;

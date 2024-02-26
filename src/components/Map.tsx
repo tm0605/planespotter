@@ -11,15 +11,6 @@ import AirportContext from '../contexts/AirportContext';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
-interface AirportData {
-    name: string;
-    iata_code: string;
-    icao_code: string;
-    lat: number;
-    lng: number;
-    country_code: string;
-}
-
 // Get Flight Updates and Set Data
 const updateFlightLocation  = async (map: mapboxgl.Map) => {
     const swLat = map.getBounds()._sw.lat;
@@ -143,7 +134,7 @@ export default function Map() {
 
     useEffect(() => {
         if (map.current) return; // initialize map only once
-        // sendActivity(); // Send activity to backend to update the database
+        sendActivity(); // Send activity to backend to update the database
         
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
@@ -381,7 +372,7 @@ export default function Map() {
     
     useEffect(() => {
         const handleUserActivity = debounce(() => {
-            // sendActivity();
+            sendActivity();
         }, 1000);
     
         // Listen for mouse and key events
