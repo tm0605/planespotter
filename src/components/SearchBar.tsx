@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useContext } from 'react';
 import getSearchResults from '../services/serchService';
 import FlightContext from '../contexts/FlightContext';
-// import { setSourceMapsEnabled } from 'process';
+import AirportContext from '../contexts/AirportContext';
 
 const AirportSuggestion = ({ airport }) => {
     return (
         <div>
-            <strong>{airport.name}</strong> ({airport.iata_code})
+            <strong>{airport.name}</strong> ({airport.iata_code} | {airport.icao_code})
             {/* Locaiton: {airport.lat}, {airport.lng}
             Country: {airport.country_code} */}
         </div>
@@ -30,10 +30,15 @@ const SearchBar = () => {
     const inputRef = useRef<HTMLInputElement>(null);
     
     const { setSelectedFlight } = useContext(FlightContext);
+    const { setSelectedAirport } = useContext(AirportContext);
 
     const handleClickFlight = (data) => {
-        console.log(data);
+        // console.log(data);
         setSelectedFlight(data);
+    }
+
+    const handleClickAirport = (data) => {
+        setSelectedAirport(data)
     }
     
     const getSuggestions = async (searchQuery: string) => {
@@ -94,7 +99,7 @@ const SearchBar = () => {
                     <ul>
                         {airportSuggestions.map((suggestion, index) => (
                             // <li key={index}>{suggestion.name} ({suggestion.iata_code})</li>
-                            <li key={index}>
+                            <li key={index} onClick={() => handleClickAirport(suggestion)}>
                                 <AirportSuggestion airport={suggestion} />
                             </li>
                         ))}
