@@ -164,6 +164,9 @@ nav a {
     background-color: var(--color-primary);
 }
 
+canvas {
+    position: fixed;
+}
 @media (max-width: 768px) {
     .logo {
         position: fixed;

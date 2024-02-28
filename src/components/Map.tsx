@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { debounce } from 'lodash';
-// import WebSocket from 'ws';
 import getFlightData from '../services/flightService';
 import getPhotoLocationAll from '../services/photoLocationService';
 import sendActivity from '../services/activityService';
@@ -117,24 +118,50 @@ const airportUnselect = (map: mapboxgl.Map) => {
     map.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
 }
 
+const convertLatLngToThreeJs = (lat, lng) => {
+    let x = (lng + 180) * (100 / 360);
+    let y = (lat + 90) * (100 / 180);
+    return { x: x, y: 0, z: -y };
+}
+
+const calculateHeightFromZoom = (zoom) => {
+    return 1000 / zoom;
+}
+
+const convertPitchToRotation = (pitch) => {
+    return THREE.MathUtils.degToRad(pitch);
+}
+
+const convertBearingToRotation = (bearing) => {
+    return THREE.MathUtils.degToRad(-bearing);
+}
+
+const calculateFovFromMapState = (zoom) => {
+    return 75 - zoom * 2;
+}
+
 export default function Map() {
-    const mapContainer = useRef<any>(null);
+    const mapContainer = useRef<HTMLElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const mapLoaded = useRef<boolean>(false);
+    const threejsSceneRef = useRef<THREE.Scene>();
+    const threejsCameraRef = useRef<THREE.PerspectiveCamera>();
+    const threejsRendererRef = useRef<THREE.WebGLRenderer>();
+    const aircraftModelRef = useRef<THREE.Object3D>();
     const [lng, setLng] = useState<any>(-70.9);
     const [lat, setLat] = useState<any>(42.35);
     const [zoom, setZoom] = useState<any>(9);
+    const [pitch, setPitch] = useState<any>(null);
     let lastUpdateTimestamp = Date.now();
     const minZoomLevel = 8;
 
     const [hoveringFlight, setHoveringFlight] = useState<any>(null);
     const { selectedFlight, setSelectedFlight } = useContext(FlightContext);
-    const { selectedAirport, setSelectedAirport } = useContext(AirportContext)
-    // const selectedFlightRef = useRef(selectedFlight);
+    const { selectedAirport, setSelectedAirport } = useContext(AirportContext);
 
     useEffect(() => {
         if (map.current) return; // initialize map only once
-        sendActivity(); // Send activity to backend to update the database
+        // sendActivity(); // Send activity to backend to update the database
         
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
@@ -147,13 +174,14 @@ export default function Map() {
         map.current.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true,
             showZoom: false
-        }), 'bottom-right')
+        }), 'bottom-right');
         
         map.current.on('move', () => {
             if (map.current) {
                 setLng(map.current.getCenter().lng.toFixed(4));
                 setLat(map.current.getCenter().lat.toFixed(4));
                 setZoom(map.current.getZoom().toFixed(2));
+                setPitch(map.current.getPitch());
             }
         });
 
@@ -244,17 +272,6 @@ export default function Map() {
             closeOnClick: false
         }).setMaxWidth("275px");
 
-        // Update the information on the sidebar if aircraft selected
-        // const updateSelectedFlightData = () => {
-        //     if (selectedFlightRef.current == null) return;
-        //     const sourceData = map.current.getSource('flights')._data;
-        //     const updatedFlight = sourceData.features.find(flight => flight.properties.id === selectedFlightRef.current.hex);
-
-        //     if (updatedFlight) {
-        //         setSelectedFlight(updatedFlight.properties.flight);
-        //     }
-        // }
-
         // Trigger when map is moved
         map.current.on('moveend', async () => {
             updateFlightLocation(map.current);
@@ -333,7 +350,114 @@ export default function Map() {
             popup.remove();
         })
 
+        // const scene = new THREE.Scene();
+        // threejsSceneRef.current = scene;
+        // // Add lighting, camera, renderer setup here for Three.js
+        // const light = new THREE.AmbientLight(0xffffff);
+        // scene.add(light);
+        // light.position.set(0, 0, 10)
+
+        // const loader = new GLTFLoader();
+        // loader.load('assets/plane.gltf', (gltf) => {
+        //     const aircraftModel = gltf.scene;
+        //     scene.add(aircraftModel);
+        //     aircraftModelRef.current = aircraftModel;
+
+        //     const threeJsPosition = convertLatLngToThreeJs(map.current.getCenter().lat, map.current.getCenter().lng)
+        //     // aircraftModel.position.set(threeJsPosition.x, threeJsPosition.y, 0);
+        //     aircraftModel.position.set(0, 0, 0);
+        //     aircraftModel.scale.set(10, 10, 10);
+        // });
+        // // Remember to adjust your Three.js camera based on the Mapbox camera
+
+        // // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight);
+        // scene.add(camera);
+        // const threeJsPosition = convertLatLngToThreeJs(map.current.getCenter().lat, map.current.getCenter().lng)
+        // // camera.position.set(threeJsPosition.x, threeJsPosition.y, calculateHeightFromZoom(map.current.getZoom()));
+        // camera.position.set(0, 0, 5);
+        // threejsCameraRef.current = camera;
+
+        // const renderer = new THREE.WebGLRenderer({  });
+        // renderer.setSize(window.innerWidth, window.innerHeight);
+        // mapContainer.current.appendChild(renderer.domElement);
+
+        // // Add sync logic between Mapbox and Three.js camera here
+        // // This includes listening to map events and updating the Three.js camera accordingly
+
+        // const animate = () => {
+        //     requestAnimationFrame(animate);
+        //     renderer.render(scene, camera);
+        // }
+        // animate();
+
+        const scene = new THREE.Scene();
+        threejsSceneRef.current = scene;
+
+        // const geometry = new THREE.SphereGeometry(3, 64, 64);
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshStandardMaterial({
+            color: "#00ff83",
+        })
+
+        const mesh = new THREE.Mesh(geometry, material)
+        const threeJsPosition = convertLatLngToThreeJs(map.current.getCenter().lat, map.current.getCenter().lng);
+        mesh.position.set(threeJsPosition.x, threeJsPosition.y, 0);
+        threejsSceneRef.current.add(mesh);
+
+        // const light = new THREE.PointLight(0xffffff, 100, 100)
+        const light = new THREE.AmbientLight(0xffffff);
+        light.position.set(0, 10, 10)
+        threejsSceneRef.current.add(light)
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        threejsCameraRef.current = camera;
+        threejsCameraRef.current.position.set(threeJsPosition.x, threeJsPosition.y, calculateHeightFromZoom(map.current.getZoom()));
+        
+        threejsSceneRef.current.add(threejsCameraRef.current)
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true })
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        const canvasContainer = map.current.getCanvasContainer();
+        canvasContainer.append(renderer.domElement);
+        
+        const animate = () => {
+            requestAnimationFrame(animate);
+            // mesh.rotation.x += 0.01;
+            // mesh.rotation.y += 0.01;
+            renderer.render(threejsSceneRef.current, threejsCameraRef.current);
+        };
+
+        animate();
+
     }, []);
+
+    useEffect(() => {
+        const bearing = map.current.getBearing();
+        map.current.on('move', () => {
+            // Calculate Three.js camera position based on Mapbox camera's geographic position
+            const center = map.current.getCenter();
+            const threeJsPosition = convertLatLngToThreeJs(center.lat, center.lng);
+          
+            threejsCameraRef.current.position.set(threeJsPosition.x, threeJsPosition.y, calculateHeightFromZoom(map.current.getZoom()));
+          
+            // Adjust camera rotation to match Mapbox pitch and bearing
+            // const pitch = map.current.getPitch();
+            const bearing = map.current.getBearing();
+            threejsCameraRef.current.rotation.set(convertPitchToRotation(pitch), 0, convertBearingToRotation(bearing));
+          
+            // Optionally adjust camera field of view based on zoom or other factors
+            threejsCameraRef.current.fov = calculateFovFromMapState(map.current.getZoom());
+            threejsCameraRef.current.updateProjectionMatrix();
+        })
+        // console.log(threejsCameraRef.current.getEffectiveFOV());
+        console.log('lat', lat);
+        console.log('lng', lng);
+        console.log('zoom', zoom);
+        console.log('pitch', pitch);
+        console.log('bearing', bearing);
+    }, [lat, lng, zoom, pitch]);
 
     useEffect(() => {
         if (!mapLoaded.current) return;
@@ -372,7 +496,7 @@ export default function Map() {
     
     useEffect(() => {
         const handleUserActivity = debounce(() => {
-            sendActivity();
+            // sendActivity();
         }, 1000);
     
         // Listen for mouse and key events
