@@ -1,7 +1,8 @@
-import { useRef, useEffect, useState, useContext } from 'react';
+import { useRef, useEffect, useState, useContext, ReactEventHandler } from 'react';
 import mapboxgl from 'mapbox-gl';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { Threebox } from 'threebox-plugin'; 
 import { debounce } from 'lodash';
 import getFlightData from '../services/flightService';
 import getPhotoLocationAll from '../services/photoLocationService';
@@ -9,6 +10,7 @@ import sendActivity from '../services/activityService';
 import FlightInfo from './FlightInfo'; 
 import FlightContext from '../contexts/FlightContext';
 import AirportContext from '../contexts/AirportContext';
+import { error } from 'console';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
@@ -28,6 +30,7 @@ const updateFlightLocation  = async (map: mapboxgl.Map) => {
         const updated = calculateFlightLocation(geojson, timeElapsed) // Calculate estimated location
 
         map.getSource('flights').setData(updated);
+        return updated;
     }
 }
 
@@ -118,43 +121,387 @@ const airportUnselect = (map: mapboxgl.Map) => {
     map.setPaintProperty('major-airports-circle', 'circle-color', '#ffffff')
 }
 
-const convertLatLngToThreeJs = (lat, lng) => {
-    let x = (lng + 180) * (100 / 360);
-    let y = (lat + 90) * (100 / 180);
-    return { x: x, y: 0, z: -y };
-}
-
-const calculateHeightFromZoom = (zoom) => {
-    return 1000 / zoom;
-}
-
-const convertPitchToRotation = (pitch) => {
-    return THREE.MathUtils.degToRad(pitch);
-}
-
-const convertBearingToRotation = (bearing) => {
-    return THREE.MathUtils.degToRad(-bearing);
-}
-
-const calculateFovFromMapState = (zoom) => {
-    return 75 - zoom * 2;
-}
-
-export default function Map() {
+const Map = () => {
     const mapContainer = useRef<HTMLElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const mapLoaded = useRef<boolean>(false);
-    const threejsSceneRef = useRef<THREE.Scene>();
-    const threejsCameraRef = useRef<THREE.PerspectiveCamera>();
-    const threejsRendererRef = useRef<THREE.WebGLRenderer>();
-    const aircraftModelRef = useRef<THREE.Object3D>();
-    const [lng, setLng] = useState<any>(-70.9);
-    const [lat, setLat] = useState<any>(42.35);
+    // const threejsSceneRef = useRef<THREE.Scene>();
+    // const threejsCameraRef = useRef<THREE.PerspectiveCamera>();
+    // const threejsRendererRef = useRef<THREE.WebGLRenderer>();
+    // const aircraftModelRef = useRef<THREE.Object3D>();
+    const [lng, setLng] = useState<any>(139.7);
+    const [lat, setLat] = useState<any>(35.5);
     const [zoom, setZoom] = useState<any>(9);
-    const [pitch, setPitch] = useState<any>(null);
+    const [pitch, setPitch] = useState<any>(0);
+    const [bearing, setBearing] = useState<number>(0);
     let lastUpdateTimestamp = Date.now();
     const minZoomLevel = 8;
 
+    const [visibleFlight, setVisibleFlight] = useState<any>({
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        138.61728795707023,
+                        34.8979322596904
+                    ]
+                },
+                "properties": {
+                    "id": "780A19",
+                    "flight": {
+                        "hex": "780A19",
+                        "reg_number": "B-KPX",
+                        "flag": "HK",
+                        "lat": 34.902325,
+                        "lng": 138.628774,
+                        "alt": 10924,
+                        "dir": 245.5,
+                        "speed": 740,
+                        "v_speed": 0,
+                        "squawk": null,
+                        "flight_number": "881",
+                        "flight_icao": "CPA881",
+                        "flight_iata": "CX881",
+                        "dep_icao": "KLAX",
+                        "dep_iata": "LAX",
+                        "arr_icao": "VHHH",
+                        "arr_iata": "HKG",
+                        "airline_icao": "CPA",
+                        "airline_iata": "CX",
+                        "aircraft_icao": "B77W",
+                        "updated": 1708972679,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "CX881",
+                    "rotation": 245
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        138.30747928015137,
+                        35.443418618876116
+                    ]
+                },
+                "properties": {
+                    "id": "780AAD",
+                    "flight": {
+                        "hex": "780AAD",
+                        "reg_number": "B-LRJ",
+                        "flag": "HK",
+                        "lat": 35.449461,
+                        "lng": 138.318072,
+                        "alt": 12158,
+                        "dir": 235.7,
+                        "speed": 750,
+                        "v_speed": 0,
+                        "squawk": null,
+                        "flight_number": "873",
+                        "flight_icao": "CPA873",
+                        "flight_iata": "CX873",
+                        "dep_icao": "KSFO",
+                        "dep_iata": "SFO",
+                        "arr_icao": "VHHH",
+                        "arr_iata": "HKG",
+                        "airline_icao": "CPA",
+                        "airline_iata": "CX",
+                        "aircraft_icao": "A359",
+                        "updated": 1708972679,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "CX873",
+                    "rotation": 235
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        139.5206573208894,
+                        35.90528821293256
+                    ]
+                },
+                "properties": {
+                    "id": "AAC8A4",
+                    "flight": {
+                        "hex": "AAC8A4",
+                        "reg_number": "N794UA",
+                        "flag": "US",
+                        "lat": 35.909613,
+                        "lng": 139.53265,
+                        "alt": 10200,
+                        "dir": 246.1,
+                        "speed": 757,
+                        "v_speed": 0,
+                        "squawk": null,
+                        "flight_number": "853",
+                        "flight_icao": "UAL853",
+                        "flight_iata": "UA853",
+                        "dep_icao": "KSFO",
+                        "dep_iata": "SFO",
+                        "arr_icao": "RCTP",
+                        "arr_iata": "TPE",
+                        "airline_icao": "UAL",
+                        "airline_iata": "UA",
+                        "aircraft_icao": "B772",
+                        "updated": 1708972679,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "UA853",
+                    "rotation": 246
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        139.39723563373767,
+                        36.39442031831568
+                    ]
+                },
+                "properties": {
+                    "id": "780A8D",
+                    "flight": {
+                        "hex": "780A8D",
+                        "reg_number": "B-KQT",
+                        "flag": "HK",
+                        "lat": 36.401079,
+                        "lng": 139.407824,
+                        "alt": 10817,
+                        "dir": 232.8,
+                        "speed": 770,
+                        "v_speed": 3500,
+                        "squawk": null,
+                        "flight_number": "865",
+                        "flight_icao": "CPA865",
+                        "flight_iata": "CX865",
+                        "dep_icao": "CYVR",
+                        "dep_iata": "YVR",
+                        "arr_icao": "VHHH",
+                        "arr_iata": "HKG",
+                        "airline_icao": "CPA",
+                        "airline_iata": "CX",
+                        "aircraft_icao": "B77W",
+                        "updated": 1708972679,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "CX865",
+                    "rotation": 232
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        140.19078076989817,
+                        36.680928160840395
+                    ]
+                },
+                "properties": {
+                    "id": "899035",
+                    "flight": {
+                        "hex": "899035",
+                        "reg_number": "B-16730",
+                        "flag": "TW",
+                        "lat": 36.686834,
+                        "lng": 140.202121,
+                        "alt": 11602,
+                        "dir": 237,
+                        "speed": 772,
+                        "v_speed": null,
+                        "squawk": null,
+                        "flight_number": "17",
+                        "flight_icao": "EVA17",
+                        "flight_iata": "BR17",
+                        "dep_icao": "KSFO",
+                        "dep_iata": "SFO",
+                        "arr_icao": "RCTP",
+                        "arr_iata": "TPE",
+                        "airline_icao": "EVA",
+                        "airline_iata": "BR",
+                        "aircraft_icao": "B77W",
+                        "updated": 1708972663,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "BR17",
+                    "rotation": 237
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        139.3650352588564,
+                        35.074465486457775
+                    ]
+                },
+                "properties": {
+                    "id": "899039",
+                    "flight": {
+                        "hex": "899039",
+                        "reg_number": "B-16735",
+                        "flag": "TW",
+                        "lat": 35.078428,
+                        "lng": 139.376442,
+                        "alt": 10992,
+                        "dir": 247,
+                        "speed": 722,
+                        "v_speed": null,
+                        "squawk": null,
+                        "flight_number": "27",
+                        "flight_icao": "EVA27",
+                        "flight_iata": "BR27",
+                        "dep_icao": "KSFO",
+                        "dep_iata": "SFO",
+                        "arr_icao": "RCTP",
+                        "arr_iata": "TPE",
+                        "airline_icao": "EVA",
+                        "airline_iata": "BR",
+                        "aircraft_icao": "B77W",
+                        "updated": 1708972663,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "BR27",
+                    "rotation": 247
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        141.11918573877207,
+                        35.57872200487461
+                    ]
+                },
+                "properties": {
+                    "id": "89901C",
+                    "flight": {
+                        "hex": "89901C",
+                        "reg_number": "B-18002",
+                        "flag": "TW",
+                        "lat": 35.581474,
+                        "lng": 141.131814,
+                        "alt": 10992,
+                        "dir": 255,
+                        "speed": 757,
+                        "v_speed": null,
+                        "squawk": null,
+                        "flight_number": "7",
+                        "flight_icao": "CAL7",
+                        "flight_iata": "CI7",
+                        "dep_icao": "KLAX",
+                        "dep_iata": "LAX",
+                        "arr_icao": "RCTP",
+                        "arr_iata": "TPE",
+                        "airline_icao": "CAL",
+                        "airline_iata": "CI",
+                        "aircraft_icao": "B77W",
+                        "updated": 1708972661,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "CI7",
+                    "rotation": 255
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        139.18645728308525,
+                        36.00224195549958
+                    ]
+                },
+                "properties": {
+                    "id": "8991E5",
+                    "flight": {
+                        "hex": "8991E5",
+                        "reg_number": "B-58502",
+                        "flag": "TW",
+                        "lat": 36.006846,
+                        "lng": 139.197627,
+                        "alt": 12219,
+                        "dir": 243,
+                        "speed": 722,
+                        "v_speed": null,
+                        "squawk": null,
+                        "flight_number": "1",
+                        "flight_icao": "SJX1",
+                        "flight_iata": "JX1",
+                        "dep_icao": "KLAX",
+                        "dep_iata": "LAX",
+                        "arr_icao": "RCTP",
+                        "arr_iata": "TPE",
+                        "airline_icao": "SJX",
+                        "airline_iata": "JX",
+                        "aircraft_icao": "A359",
+                        "updated": 1708972659,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "JX1",
+                    "rotation": 243
+                }
+            },
+            {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [
+                        138.95347803751474,
+                        34.90136572153969
+                    ]
+                },
+                "properties": {
+                    "id": "89901F",
+                    "flight": {
+                        "hex": "89901F",
+                        "reg_number": "B-18006",
+                        "flag": "TW",
+                        "lat": 34.905438,
+                        "lng": 138.965176,
+                        "alt": 10383,
+                        "dir": 247,
+                        "speed": 742,
+                        "v_speed": null,
+                        "squawk": null,
+                        "flight_number": "3",
+                        "flight_icao": "CAL3",
+                        "flight_iata": "CI3",
+                        "dep_icao": "KSFO",
+                        "dep_iata": "SFO",
+                        "arr_icao": "RCTP",
+                        "arr_iata": "TPE",
+                        "airline_icao": "CAL",
+                        "airline_iata": "CI",
+                        "aircraft_icao": "B77W",
+                        "updated": 1708972662,
+                        "status": "en-route",
+                        "type": "adsb"
+                    },
+                    "flight_iata": "CI3",
+                    "rotation": 247
+                }
+            }
+        ]
+    });
     const [hoveringFlight, setHoveringFlight] = useState<any>(null);
     const { selectedFlight, setSelectedFlight } = useContext(FlightContext);
     const { selectedAirport, setSelectedAirport } = useContext(AirportContext);
@@ -170,6 +517,12 @@ export default function Map() {
             zoom: zoom
         });
 
+        const tb = (window.tb = new Threebox(
+            map.current,
+            map.current.getCanvas().getContext('webgl'),
+            { defaultLights: true }
+        ));
+
         // Adding pitch control on the map
         map.current.addControl(new mapboxgl.NavigationControl({
             visualizePitch: true,
@@ -182,6 +535,7 @@ export default function Map() {
                 setLat(map.current.getCenter().lat.toFixed(4));
                 setZoom(map.current.getZoom().toFixed(2));
                 setPitch(map.current.getPitch());
+                setBearing(map.current.getBearing());
             }
         });
 
@@ -227,7 +581,7 @@ export default function Map() {
                     ]
                 }
             });
-            updateFlightLocation(map.current);
+            setVisibleFlight(await updateFlightLocation(map.current));
             map.current.addSource('spottingLocations', {
                 type: 'geojson',
                 data: null
@@ -267,6 +621,41 @@ export default function Map() {
         animateAircraft(); // Activate flight animation
         })
 
+        map.current.on('style.load', () => {
+
+            map.current.addLayer({
+                id: 'threebox',
+                type: 'custom',
+                renderingMode: '3d',
+                onAdd: function () {
+                    console.log('test', visibleFlight)
+                    const scale = 200;
+                    const options = {
+                        obj: 'assets/plane.gltf',
+                        type: 'gltf',
+                        scale: {x: scale, y: scale, z: scale},
+                        units: 'meters', 
+                        rotation: { x: 90, y: -90, z: 0 }, // default rotation
+                    };
+                    tb.loadObj(options, (model: any) => {
+                        model.setCoords([139.7797, 35.5523, (2000 / 50)]);
+                        model.setRotation({ x: 0, y: 0, z: 0 + 90 });
+                        tb.add(model);
+                    });
+                    visibleFlight.features.map((flight) => { // might need to add features.map
+                        tb.loadObj(options, (model: any) => {
+                            model.setCoords([flight.properties.flight.lng, flight.properties.flight.lat, (flight.properties.flight.alt / 50)]);
+                            model.setRotation({ x: 0, y: 0, z: flight.properties.flight.dir + 90 });
+                            tb.add(model);
+                        });
+                    })
+                },
+                render: function () {
+                    tb.update();
+                }
+            })
+        })
+
         const popup = new mapboxgl.Popup({
             closeButton: false,
             closeOnClick: false
@@ -274,13 +663,13 @@ export default function Map() {
 
         // Trigger when map is moved
         map.current.on('moveend', async () => {
-            updateFlightLocation(map.current);
+            setVisibleFlight(await updateFlightLocation(map.current));
             // updateSelectedFlightData();
         });
 
         // Trigger for a certain interval
         setInterval(async () => {
-            updateFlightLocation(map.current);
+            setVisibleFlight(await updateFlightLocation(map.current));
             // updateSelectedFlightData();
         }, 15000);
 
@@ -350,114 +739,23 @@ export default function Map() {
             popup.remove();
         })
 
-        // const scene = new THREE.Scene();
-        // threejsSceneRef.current = scene;
-        // // Add lighting, camera, renderer setup here for Three.js
-        // const light = new THREE.AmbientLight(0xffffff);
-        // scene.add(light);
-        // light.position.set(0, 0, 10)
-
-        // const loader = new GLTFLoader();
-        // loader.load('assets/plane.gltf', (gltf) => {
-        //     const aircraftModel = gltf.scene;
-        //     scene.add(aircraftModel);
-        //     aircraftModelRef.current = aircraftModel;
-
-        //     const threeJsPosition = convertLatLngToThreeJs(map.current.getCenter().lat, map.current.getCenter().lng)
-        //     // aircraftModel.position.set(threeJsPosition.x, threeJsPosition.y, 0);
-        //     aircraftModel.position.set(0, 0, 0);
-        //     aircraftModel.scale.set(10, 10, 10);
-        // });
-        // // Remember to adjust your Three.js camera based on the Mapbox camera
-
-        // // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight);
-        // scene.add(camera);
-        // const threeJsPosition = convertLatLngToThreeJs(map.current.getCenter().lat, map.current.getCenter().lng)
-        // // camera.position.set(threeJsPosition.x, threeJsPosition.y, calculateHeightFromZoom(map.current.getZoom()));
-        // camera.position.set(0, 0, 5);
-        // threejsCameraRef.current = camera;
-
-        // const renderer = new THREE.WebGLRenderer({  });
-        // renderer.setSize(window.innerWidth, window.innerHeight);
-        // mapContainer.current.appendChild(renderer.domElement);
-
-        // // Add sync logic between Mapbox and Three.js camera here
-        // // This includes listening to map events and updating the Three.js camera accordingly
-
-        // const animate = () => {
-        //     requestAnimationFrame(animate);
-        //     renderer.render(scene, camera);
-        // }
-        // animate();
-
-        const scene = new THREE.Scene();
-        threejsSceneRef.current = scene;
-
-        // const geometry = new THREE.SphereGeometry(3, 64, 64);
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshStandardMaterial({
-            color: "#00ff83",
-        })
-
-        const mesh = new THREE.Mesh(geometry, material)
-        const threeJsPosition = convertLatLngToThreeJs(map.current.getCenter().lat, map.current.getCenter().lng);
-        mesh.position.set(threeJsPosition.x, threeJsPosition.y, 0);
-        threejsSceneRef.current.add(mesh);
-
-        // const light = new THREE.PointLight(0xffffff, 100, 100)
-        const light = new THREE.AmbientLight(0xffffff);
-        light.position.set(0, 10, 10)
-        threejsSceneRef.current.add(light)
-
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        threejsCameraRef.current = camera;
-        threejsCameraRef.current.position.set(threeJsPosition.x, threeJsPosition.y, calculateHeightFromZoom(map.current.getZoom()));
-        
-        threejsSceneRef.current.add(threejsCameraRef.current)
-
-        const renderer = new THREE.WebGLRenderer({ alpha: true })
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        
-        const canvasContainer = map.current.getCanvasContainer();
-        canvasContainer.append(renderer.domElement);
-        
-        const animate = () => {
-            requestAnimationFrame(animate);
-            // mesh.rotation.x += 0.01;
-            // mesh.rotation.y += 0.01;
-            renderer.render(threejsSceneRef.current, threejsCameraRef.current);
-        };
-
-        animate();
-
     }, []);
 
     useEffect(() => {
-        const bearing = map.current.getBearing();
-        map.current.on('move', () => {
-            // Calculate Three.js camera position based on Mapbox camera's geographic position
-            const center = map.current.getCenter();
-            const threeJsPosition = convertLatLngToThreeJs(center.lat, center.lng);
-          
-            threejsCameraRef.current.position.set(threeJsPosition.x, threeJsPosition.y, calculateHeightFromZoom(map.current.getZoom()));
-          
-            // Adjust camera rotation to match Mapbox pitch and bearing
-            // const pitch = map.current.getPitch();
-            const bearing = map.current.getBearing();
-            threejsCameraRef.current.rotation.set(convertPitchToRotation(pitch), 0, convertBearingToRotation(bearing));
-          
-            // Optionally adjust camera field of view based on zoom or other factors
-            threejsCameraRef.current.fov = calculateFovFromMapState(map.current.getZoom());
-            threejsCameraRef.current.updateProjectionMatrix();
-        })
-        // console.log(threejsCameraRef.current.getEffectiveFOV());
+        try {
+        console.log(visibleFlight);
+        } catch {
+
+        }
+    }, [visibleFlight])
+
+    useEffect(() => {
         console.log('lat', lat);
         console.log('lng', lng);
         console.log('zoom', zoom);
         console.log('pitch', pitch);
         console.log('bearing', bearing);
-    }, [lat, lng, zoom, pitch]);
+    }, [lat, lng, zoom, pitch, bearing]);
 
     useEffect(() => {
         if (!mapLoaded.current) return;
@@ -518,3 +816,5 @@ export default function Map() {
         </>
     )
 }
+
+export default Map;
