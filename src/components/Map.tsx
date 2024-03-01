@@ -1,7 +1,5 @@
 import { useRef, useEffect, useState, useContext, ReactEventHandler } from 'react';
 import mapboxgl from 'mapbox-gl';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Threebox } from 'threebox-plugin'; 
 import { debounce } from 'lodash';
 import getFlightData from '../services/flightService';
@@ -125,10 +123,7 @@ const Map = () => {
     const mapContainer = useRef<HTMLElement>(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const mapLoaded = useRef<boolean>(false);
-    // const threejsSceneRef = useRef<THREE.Scene>();
-    // const threejsCameraRef = useRef<THREE.PerspectiveCamera>();
-    // const threejsRendererRef = useRef<THREE.WebGLRenderer>();
-    // const aircraftModelRef = useRef<THREE.Object3D>();
+    const tb = useRef<Threebox>(null);
     const [lng, setLng] = useState<any>(139.7);
     const [lat, setLat] = useState<any>(35.5);
     const [zoom, setZoom] = useState<any>(9);
@@ -517,7 +512,7 @@ const Map = () => {
             zoom: zoom
         });
 
-        const tb = (window.tb = new Threebox(
+        tb.current = (window.tb = new Threebox(
             map.current,
             map.current.getCanvas().getContext('webgl'),
             { defaultLights: true }
@@ -608,14 +603,14 @@ const Map = () => {
             if (data != null && map.current.getZoom() > 4.5) {
 
                 const updated = calculateFlightLocation(data, timeElapsed); // Calculate estimated location
-                
+                // console.log(updated)
+                setVisibleFlight(updated);
                 map.current.getSource('flights').setData(updated); // Update plane location for animation
             }
             lastUpdateTimestamp = now;
         
             setTimeout(animateAircraft, updateRate) // Set update rate
 
-            mapLoaded.current = true;
         };
 
         animateAircraft(); // Activate flight animation
@@ -637,23 +632,25 @@ const Map = () => {
                         units: 'meters', 
                         rotation: { x: 90, y: -90, z: 0 }, // default rotation
                     };
-                    tb.loadObj(options, (model: any) => {
+                    tb.current.loadObj(options, (model: any) => {
                         model.setCoords([139.7797, 35.5523, (2000 / 50)]);
                         model.setRotation({ x: 0, y: 0, z: 0 + 90 });
-                        tb.add(model);
+                        tb.current.add(model);
                     });
                     visibleFlight.features.map((flight) => { // might need to add features.map
-                        tb.loadObj(options, (model: any) => {
+                        tb.current.loadObj(options, (model: any) => {
                             model.setCoords([flight.properties.flight.lng, flight.properties.flight.lat, (flight.properties.flight.alt / 50)]);
                             model.setRotation({ x: 0, y: 0, z: flight.properties.flight.dir + 90 });
-                            tb.add(model);
+                            tb.current.add(model);
                         });
                     })
                 },
                 render: function () {
-                    tb.update();
+                    tb.current.update();
                 }
             })
+            
+            mapLoaded.current = true;
         })
 
         const popup = new mapboxgl.Popup({
@@ -739,17 +736,73 @@ const Map = () => {
             popup.remove();
         })
 
+        
+
     }, []);
 
     useEffect(() => {
         try {
-        console.log(visibleFlight);
+            console.log(visibleFlight);
+            tb.current.clear();
+            const scale = 30;
+            const options = {
+                obj: 'assets/plane.gltf',
+                type: 'gltf',
+                scale: {x: scale, y: scale, z: scale},
+                units: 'meters', 
+                rotation: { x: 90, y: -90, z: 0 }, // default rotation
+            };
+            // tb.current.loadObj(options, (model: any) => {
+            //     model.setCoords([139.7797, 35.5523, (2000 / 50)]);
+            //     model.setRotation({ x: 0, y: 0, z: 0 + 90 });
+            //     tb.current.add(model);
+            // });
+            visibleFlight.features.map((flight) => { // might need to add features.map
+                tb.current.loadObj(options, (model: any) => {
+                    model.setCoords([flight.properties.flight.lng, flight.properties.flight.lat, (flight.properties.flight.alt / 50)]);
+                    model.setRotation({ x: 0, y: 0, z: flight.properties.flight.dir -30 });
+                    tb.current.add(model);
+                });
+            })
+            tb.current.update();
         } catch {
 
         }
     }, [visibleFlight])
 
     useEffect(() => {
+        if (!mapLoaded.current) return;
+
+        if (zoom > 13 || pitch > 55) {
+            // tb.current.clear();
+            // const scale = 30;
+            // const options = {
+            //     obj: 'assets/plane.gltf',
+            //     type: 'gltf',
+            //     scale: {x: scale, y: scale, z: scale},
+            //     units: 'meters', 
+            //     rotation: { x: 90, y: -90, z: 0 }, // default rotation
+            // };
+            // // tb.current.loadObj(options, (model: any) => {
+            // //     model.setCoords([139.7797, 35.5523, (2000 / 50)]);
+            // //     model.setRotation({ x: 0, y: 0, z: 0 + 90 });
+            // //     tb.current.add(model);
+            // // });
+            // visibleFlight.features.map((flight) => { // might need to add features.map
+            //     tb.current.loadObj(options, (model: any) => {
+            //         model.setCoords([flight.properties.flight.lng, flight.properties.flight.lat, (flight.properties.flight.alt / 50)]);
+            //         model.setRotation({ x: 0, y: 0, z: flight.properties.flight.dir -30 });
+            //         tb.current.add(model);
+            //     });
+            // })
+            // map.current.setLayoutProperty('flights', 'visibility', 'none');
+            map.current.setPaintProperty('flights', 'icon-opacity', 0);
+            map.current.setLayoutProperty('threebox', 'visibility', 'visible');
+        } else {
+            // map.current.setLayoutProperty('flights', 'visibility', 'visible');
+            map.current.setPaintProperty('flights', 'icon-opacity', 1);
+            map.current.setLayoutProperty('threebox', 'visibility', 'none');
+        }
         console.log('lat', lat);
         console.log('lng', lng);
         console.log('zoom', zoom);
