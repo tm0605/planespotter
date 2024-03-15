@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { debounce } from 'lodash';
 // import WebSocket from 'ws';
+import { useShepherdTour } from 'react-shepherd';
 import getFlightData from '../services/flightService';
 import getPhotoLocationAll from '../services/photoLocationService';
 import sendActivity from '../services/activityService';
@@ -132,6 +133,66 @@ export default function Map() {
     const { selectedAirport, setSelectedAirport } = useContext(AirportContext)
     // const selectedFlightRef = useRef(selectedFlight);
 
+    const tourOptions = {
+        defaultStepOptions: {
+            cancelIcon: {
+                enabled: true,
+            },
+        },
+        useModalOverlay: true,
+    };
+
+    const steps = [
+        {
+            id: 'intro',
+            attachTo: { element: '.first-element', on: 'bottom' },
+            beforeShowPromise: function () {
+                return new Promise(function (resolve) {
+                setTimeout(function () {
+                    window.scrollTo(0, 0);
+                    resolve();
+                }, 500);
+                });
+            },
+            buttons: [
+                {
+                    classes: 'shepherd-button-secondary',
+                    text: 'Exit',
+                    type: 'cancel'
+                },
+                {
+                    classes: 'shepherd-button-primary',
+                    text: 'Back',
+                    type: 'back'
+                },
+                {
+                    classes: 'shepherd-button-primary',
+                    text: 'Next',
+                    type: 'next'
+                }
+            ],
+            classes: 'custom-class-name-1 custom-class-name-2',
+            highlightClass: 'highlight',
+            scrollTo: false,
+            cancelIcon: {
+                enabled: true,
+            },
+            title: 'Welcome to React-Shepherd!',
+            text: ['React-Shepherd is a JavaScript library for guiding users through your React app.'],
+            when: {
+                show: () => {
+                    console.log('show step');
+                },
+                hide: () => {
+                    console.log('hide step');
+                }
+            }
+        },
+        // ...
+    ];
+
+    const tour = useShepherdTour({ tourOptions, steps: steps });
+
     useEffect(() => {
         if (map.current) return; // initialize map only once
         sendActivity(); // Send activity to backend to update the database
@@ -216,27 +277,28 @@ export default function Map() {
             })
 
         
-        const animateAircraft = () => {
-            const data = map.current.getSource('flights')._data;
-            const now = Date.now();
-            const updateRate = map.current.getZoom() >= minZoomLevel ? 100 : 500; // Rapid update when zoomed
-            const timeElapsed = (now - lastUpdateTimestamp) / 1000;
-            
-            // If planes are within the map and not zoomed out too far
-            if (data != null && map.current.getZoom() > 4.5) {
-
-                const updated = calculateFlightLocation(data, timeElapsed); // Calculate estimated location
+            const animateAircraft = () => {
+                const data = map.current.getSource('flights')._data;
+                const now = Date.now();
+                const updateRate = map.current.getZoom() >= minZoomLevel ? 100 : 500; // Rapid update when zoomed
+                const timeElapsed = (now - lastUpdateTimestamp) / 1000;
                 
-                map.current.getSource('flights').setData(updated); // Update plane location for animation
-            }
-            lastUpdateTimestamp = now;
-        
-            setTimeout(animateAircraft, updateRate) // Set update rate
+                // If planes are within the map and not zoomed out too far
+                if (data != null && map.current.getZoom() > 4.5) {
 
-            mapLoaded.current = true;
-        };
+                    const updated = calculateFlightLocation(data, timeElapsed); // Calculate estimated location
+                    
+                    map.current.getSource('flights').setData(updated); // Update plane location for animation
+                }
+                lastUpdateTimestamp = now;
+            
+                setTimeout(animateAircraft, updateRate) // Set update rate
 
-        animateAircraft(); // Activate flight animation
+                mapLoaded.current = true;
+            };
+
+            tour.start();
+            animateAircraft(); // Activate flight animation
         })
 
         const popup = new mapboxgl.Popup({
