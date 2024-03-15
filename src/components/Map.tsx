@@ -216,27 +216,27 @@ export default function Map() {
             })
 
         
-        const animateAircraft = () => {
-            const data = map.current.getSource('flights')._data;
-            const now = Date.now();
-            const updateRate = map.current.getZoom() >= minZoomLevel ? 100 : 500; // Rapid update when zoomed
-            const timeElapsed = (now - lastUpdateTimestamp) / 1000;
-            
-            // If planes are within the map and not zoomed out too far
-            if (data != null && map.current.getZoom() > 4.5) {
-
-                const updated = calculateFlightLocation(data, timeElapsed); // Calculate estimated location
+            const animateAircraft = () => {
+                const data = map.current.getSource('flights')._data;
+                const now = Date.now();
+                const updateRate = map.current.getZoom() >= minZoomLevel ? 100 : 500; // Rapid update when zoomed
+                const timeElapsed = (now - lastUpdateTimestamp) / 1000;
                 
-                map.current.getSource('flights').setData(updated); // Update plane location for animation
-            }
-            lastUpdateTimestamp = now;
-        
-            setTimeout(animateAircraft, updateRate) // Set update rate
+                // If planes are within the map and not zoomed out too far
+                if (data != null && map.current.getZoom() > 4.5) {
 
-            mapLoaded.current = true;
-        };
+                    const updated = calculateFlightLocation(data, timeElapsed); // Calculate estimated location
+                    
+                    map.current.getSource('flights').setData(updated); // Update plane location for animation
+                }
+                lastUpdateTimestamp = now;
+            
+                setTimeout(animateAircraft, updateRate) // Set update rate
 
-        animateAircraft(); // Activate flight animation
+                mapLoaded.current = true;
+            };
+
+            animateAircraft(); // Activate flight animation
         })
 
         const popup = new mapboxgl.Popup({
