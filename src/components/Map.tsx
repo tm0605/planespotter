@@ -138,6 +138,7 @@ export default function Map() {
             cancelIcon: {
                 enabled: true,
             },
+            classes: 'class-1 class-2'
         },
         useModalOverlay: true,
     };
@@ -145,13 +146,13 @@ export default function Map() {
     const steps = [
         {
             id: 'intro',
-            attachTo: { element: '.first-element', on: 'bottom' },
+            // attachTo: { element: '.first-element', on: 'bottom' },
             beforeShowPromise: function () {
                 return new Promise(function (resolve) {
-                setTimeout(function () {
-                    window.scrollTo(0, 0);
-                    resolve();
-                }, 500);
+                    setTimeout(function () {
+                        window.scrollTo(0, 0);
+                        resolve();
+                    }, 500);
                 });
             },
             buttons: [
