@@ -3,12 +3,14 @@ import mapboxgl from 'mapbox-gl';
 import { debounce } from 'lodash';
 // import WebSocket from 'ws';
 import { useShepherdTour } from 'react-shepherd';
+// import Shepherd from 'shepherd.js';
 import getFlightData from '../services/flightService';
 import getPhotoLocationAll from '../services/photoLocationService';
 import sendActivity from '../services/activityService';
 import FlightInfo from './FlightInfo'; 
 import FlightContext from '../contexts/FlightContext';
 import AirportContext from '../contexts/AirportContext';
+import 'shepherd.js/dist/css/shepherd.css';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
@@ -147,14 +149,14 @@ export default function Map() {
         {
             id: 'intro',
             // attachTo: { element: '.first-element', on: 'bottom' },
-            beforeShowPromise: function () {
-                return new Promise(function (resolve) {
-                    setTimeout(function () {
-                        window.scrollTo(0, 0);
-                        resolve();
-                    }, 500);
-                });
-            },
+            // beforeShowPromise: function () {
+            //     return new Promise(function (resolve) {
+            //         setTimeout(function () {
+            //             window.scrollTo(0, 0);
+            //             resolve();
+            //         }, 500);
+            //     });
+            // },
             buttons: [
                 {
                     classes: 'shepherd-button-secondary',
@@ -179,7 +181,52 @@ export default function Map() {
                 enabled: true,
             },
             title: 'Welcome to React-Shepherd!',
-            text: ['React-Shepherd is a JavaScript library for guiding users through your React app.'],
+            text: 'React-Shepherd is a JavaScript library for guiding users through your React app.',
+            when: {
+                show: () => {
+                    console.log('show step');
+                },
+                hide: () => {
+                    console.log('hide step');
+                }
+            }
+        },
+        {
+            id: 'intro',
+            attachTo: { element: '.searchbar', on: 'bottom' },
+            // beforeShowPromise: function () {
+            //     return new Promise(function (resolve) {
+            //         setTimeout(function () {
+            //             window.scrollTo(0, 0);
+            //             resolve();
+            //         }, 500);
+            //     });
+            // },
+            buttons: [
+                {
+                    classes: 'shepherd-button-secondary',
+                    text: 'Exit',
+                    type: 'cancel'
+                },
+                {
+                    classes: 'shepherd-button-primary',
+                    text: 'Back',
+                    type: 'back'
+                },
+                {
+                    classes: 'shepherd-button-primary',
+                    text: 'Next',
+                    type: 'next'
+                }
+            ],
+            classes: 'custom-class-name-1 custom-class-name-2',
+            highlightClass: 'highlight',
+            scrollTo: false,
+            cancelIcon: {
+                enabled: true,
+            },
+            title: 'Welcome to React-Shepherd!',
+            text: 'React-Shepherd is a JavaScript library for guiding users through your React app.',
             when: {
                 show: () => {
                     console.log('show step');

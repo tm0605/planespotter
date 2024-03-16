@@ -25,7 +25,7 @@
 }
 
 
-header {
+.header {
     position: fixed;
     display: flex;
     background-image: linear-gradient(to bottom, var(--color-bg), transparent);
