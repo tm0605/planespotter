@@ -5,6 +5,7 @@ import AirportContext from '../contexts/AirportContext';
 
 const AirportSuggestion = ({ airport, searchTerm }) => {
     const highlightText = (text: string) => {
+        if (typeof text !== 'string') return '';
         if (!searchTerm) return text;
 
         const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
@@ -21,6 +22,7 @@ const AirportSuggestion = ({ airport, searchTerm }) => {
 
 const FlightSuggestion = ({ flight, searchTerm }) => {
     const highlightText = (text: string) => {
+        if (typeof text !== 'string') return '';
         if (!searchTerm) return text;
 
         const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
