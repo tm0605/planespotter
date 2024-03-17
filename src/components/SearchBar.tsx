@@ -3,18 +3,34 @@ import getSearchResults from '../services/serchService';
 import FlightContext from '../contexts/FlightContext';
 import AirportContext from '../contexts/AirportContext';
 
-const AirportSuggestion = ({ airport }) => {
+const AirportSuggestion = ({ airport, searchTerm }) => {
+    const highlightText = (text: string) => {
+        if (!searchTerm) return text;
+
+        const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+        return parts.map((part, index) => 
+            part.toLowerCase() === searchTerm.toLowerCase() ? <strong key={index}>{part}</strong> : part
+        )
+    }
     return (
         <div>
-            <strong>{airport.name}</strong> ({airport.iata_code} | {airport.icao_code})
+            {highlightText(airport.name)} ({highlightText(airport.iata_code)} | {highlightText(airport.icao_code)})
         </div>
     );
 };
 
-const FlightSuggestion = ({ flight }) => {
+const FlightSuggestion = ({ flight, searchTerm }) => {
+    const highlightText = (text: string) => {
+        if (!searchTerm) return text;
+
+        const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+        return parts.map((part, index) => 
+            part.toLowerCase() === searchTerm.toLowerCase() ? <strong key={index}>{part}</strong> : part
+        )
+    }
     return (
         <div>
-            <strong>{flight.flight_icao}</strong> ({flight.dep_iata}-{flight.arr_iata})
+            {highlightText(flight.flight_icao)} ({highlightText(flight.dep_iata)}-{highlightText(flight.arr_iata)}) ({highlightText(flight.reg_number)})
         </div>
     )
 }
@@ -86,7 +102,7 @@ const SearchBar = () => {
 
     return (
         <div ref={inputRef} className='searchbar'>
-            <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder='Search' />
+            <input type='text' value={input} onChange={(e) => setInput(e.target.value)} placeholder='Search Flights or Airports' />
             <div className='searchresults'>
                 {isSearching && <div>Searching...</div>}
                 {!isSearching && hasSearched && airportSuggestions.length == 0 && flightSuggestions.length == 0 && (
@@ -98,7 +114,7 @@ const SearchBar = () => {
                     <ul>
                         {airportSuggestions.map((suggestion, index) => (
                             <li key={index} onClick={() => handleClickAirport(suggestion)}>
-                                <AirportSuggestion airport={suggestion} />
+                                <AirportSuggestion airport={suggestion} searchTerm={input} />
                             </li>
                         ))}
                     </ul>
@@ -109,7 +125,7 @@ const SearchBar = () => {
                     <ul>
                         {flightSuggestions.map((suggestion, index) => (
                             <li key={index} onClick={() => handleClickFlight(suggestion)}>
-                                <FlightSuggestion flight={suggestion} />
+                                <FlightSuggestion flight={suggestion} searchTerm={input} />
                             </li>
                         ))}
                     </ul>
