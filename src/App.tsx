@@ -13,7 +13,7 @@ export default function App() {
         <>
             <FlightContext.Provider value={{ selectedFlight, setSelectedFlight }}>
             <AirportContext.Provider value={{ selectedAirport, setSelectedAirport }}>
-                <header>
+                <header className='header'>
                     <NavBar />
                 </header>
 
