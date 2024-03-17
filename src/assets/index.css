@@ -24,6 +24,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* .shepherd-content {
+    background: var(--color-secondary);
+}
+
+.shepherd-header {
+    background: var(--color-bg);
+} */
+
+.shepherd-text {
+    /* color: var(--color-text) */
+    font-weight: 400;
+}
 
 .header {
     position: fixed;

@@ -148,26 +148,7 @@ export default function Map() {
     const steps = [
         {
             id: 'intro',
-            // attachTo: { element: '.first-element', on: 'bottom' },
-            // beforeShowPromise: function () {
-            //     return new Promise(function (resolve) {
-            //         setTimeout(function () {
-            //             window.scrollTo(0, 0);
-            //             resolve();
-            //         }, 500);
-            //     });
-            // },
             buttons: [
-                {
-                    classes: 'shepherd-button-secondary',
-                    text: 'Exit',
-                    type: 'cancel'
-                },
-                {
-                    classes: 'shepherd-button-primary',
-                    text: 'Back',
-                    type: 'back'
-                },
                 {
                     classes: 'shepherd-button-primary',
                     text: 'Next',
@@ -180,8 +161,8 @@ export default function Map() {
             cancelIcon: {
                 enabled: true,
             },
-            title: 'Welcome to React-Shepherd!',
-            text: 'React-Shepherd is a JavaScript library for guiding users through your React app.',
+            title: 'Welcome to Plane Spotter!',
+            text: 'Plane Spotter is a web application project that redefines the experience of aviation enthusiast by offering live flight tracking data across the globe with a unique feature of airplane spotting.',
             when: {
                 show: () => {
                     console.log('show step');
@@ -192,24 +173,11 @@ export default function Map() {
             }
         },
         {
-            id: 'intro',
+            id: 'search_function',
             attachTo: { element: '.searchbar', on: 'bottom' },
-            // beforeShowPromise: function () {
-            //     return new Promise(function (resolve) {
-            //         setTimeout(function () {
-            //             window.scrollTo(0, 0);
-            //             resolve();
-            //         }, 500);
-            //     });
-            // },
             buttons: [
                 {
                     classes: 'shepherd-button-secondary',
-                    text: 'Exit',
-                    type: 'cancel'
-                },
-                {
-                    classes: 'shepherd-button-primary',
                     text: 'Back',
                     type: 'back'
                 },
@@ -222,11 +190,12 @@ export default function Map() {
             classes: 'custom-class-name-1 custom-class-name-2',
             highlightClass: 'highlight',
             scrollTo: false,
+            canClickTarget: true,
             cancelIcon: {
                 enabled: true,
             },
-            title: 'Welcome to React-Shepherd!',
-            text: 'React-Shepherd is a JavaScript library for guiding users through your React app.',
+            title: 'Search by keyword',
+            text: 'Type keywords to search airport or real-time flights.',
             when: {
                 show: () => {
                     console.log('show step');
@@ -236,7 +205,56 @@ export default function Map() {
                 }
             }
         },
-        // ...
+        {
+            id: 'observation_spot',
+            arrow: false,
+            attachTo: { element: 'canvas', on: 'bottom' },
+            beforeShowPromise: function () {
+                const exampleAirport: object = {
+                    "country_code": "US",
+                    "iata_code": "BOS",
+                    "icao_code": "KBOS",
+                    "name": "Logan International Airport",
+                    "lat": 42.36473069273936,
+                    "lng": -71.01771553000894
+                };
+                setSelectedAirport(exampleAirport);
+                // return new Promise(function (resolve) {
+                // setTimeout(function () {
+                //     window.scrollTo(0, 0);
+                //     resolve();
+                // }, 500);
+                // });
+            },
+            buttons: [
+                {
+                    classes: 'shepherd-button-secondary',
+                    text: 'Back',
+                    type: 'back'
+                },
+                {
+                    classes: 'shepherd-button-primary',
+                    text: 'Complete',
+                    type: 'complete'
+                }
+            ],
+            classes: 'custom-class-name-1 custom-class-name-2',
+            highlightClass: 'highlight',
+            scrollTo: false,
+            cancelIcon: {
+                enabled: true,
+            },
+            title: 'View observation spots',
+            text: 'Click on the airport marker to load and view aircraft observation spots. Hover on each spot to view photos taken at the location.',
+            when: {
+                show: () => {
+                    console.log('show step');
+                },
+                hide: () => {
+                    console.log('hide step');
+                }
+            }
+        },
     ];
 
     const tour = useShepherdTour({ tourOptions, steps: steps });
@@ -414,6 +432,7 @@ export default function Map() {
             airportData.lat = e.lngLat.lat;
             airportData.lng = e.lngLat.lng;
             setSelectedAirport(airportData);
+            // console.log(airportData);
         })
 
         // Trigger when hovering on spotting locations
