@@ -22,8 +22,8 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
           script: |
             docker pull ${{ secrets.DOCKER_REPO }}
             docker stop ${{ secrets.CONTAINER_NAME }} || true
+            docker rm ${{ secrets.CONTAINER_NAME }} || true
             docker run -d -p 5000:5000 --env-file ${{ secrets.ENV_PATH }} -d --name ${{ secrets.CONTAINER_NAME }} ${{ secrets.DOCKER_REPO }}
