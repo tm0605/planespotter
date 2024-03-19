@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { scan, set } from '../models/redis.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -12,6 +13,13 @@ const parseLocation = (location) => {
 
 const getLocations = async (req, res) => {
     try {
+        const icao = req.query.icao;
+        const result = await scan(icao);
+        if (result != null) {
+            res.json(value);
+            return;
+        }
+
         // retrieve lat lng value from query
         const lat = req.query.lat;
         const lng = req.query.lng;
@@ -91,6 +99,7 @@ const getLocations = async (req, res) => {
                 }
             })
         })
+        await set(icao, geoJson);
         // console.log(locations[0]);
         // console.log(locaitons.filter(location => location != null));
         // res.json(locations.filter(location => location != null));

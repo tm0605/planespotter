@@ -60,8 +60,8 @@ const calculateFlightLocation = (data, timeElapsed: number) => {
 }
 
 // Get spotting locaiton and set data
-const getPhotoLocation = async (map: mapboxgl.Map, lat: number, lng: number) => {
-    const geojson = await getPhotoLocationAll(lat, lng);
+const getPhotoLocation = async (map: mapboxgl.Map, icao: string, lat: number, lng: number) => {
+    const geojson = await getPhotoLocationAll(icao, lat, lng);
 
     if (geojson != '') {
         map.getSource('spottingLocations').setData(geojson);
@@ -490,7 +490,7 @@ export default function Map() {
 
         if (selectedAirport != null) {
             airportSelect(map.current, selectedAirport.iata_code);
-            getPhotoLocation(map.current, selectedAirport.lat, selectedAirport.lng);
+            getPhotoLocation(map.current, selectedAirport.icao_code, selectedAirport.lat, selectedAirport.lng);
             map.current.flyTo({
                 center: [selectedAirport.lng, selectedAirport.lat],
                 essential: false,
