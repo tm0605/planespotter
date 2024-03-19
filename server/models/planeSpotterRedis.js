@@ -4,6 +4,10 @@ const client = createClient({
     url: 'redis://planespotter-redis.rrsknq.clustercfg.apse2.cache.amazonaws.com:6379',
 });
 
+client.on('error', (err) => console.log('Redis Client Error', err));
+
+client.connect();
+
 // const demoRedis = async (redisClient) => {
 //     try {
 //         await redisClient.connect();
