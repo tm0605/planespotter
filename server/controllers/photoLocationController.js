@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { scan, set } from '../models/redis.js';
+import { scan, set } from '../models/planeSpotterRedis.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
