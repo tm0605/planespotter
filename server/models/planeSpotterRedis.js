@@ -1,7 +1,7 @@
 import { createClient } from 'redis';
 
 const client = createClient({
-    url: 'planespotter-redis.rrsknq.clustercfg.apse2.cache.amazonaws.com:6379',
+    url: 'redis://planespotter-redis.rrsknq.clustercfg.apse2.cache.amazonaws.com:6379',
 });
 
 // const demoRedis = async (redisClient) => {
