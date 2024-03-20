@@ -16,7 +16,7 @@ const getLocations = async (req, res) => {
         const icao = req.query.icao;
         const result = await scan(icao);
         if (result != null) {
-            res.json(value);
+            res.json(JSON.parse(result));
             return;
         }
 
@@ -99,7 +99,8 @@ const getLocations = async (req, res) => {
                 }
             })
         })
-        await set(icao, geoJson);
+
+        await set(icao, JSON.stringify(geoJson));
         // console.log(locations[0]);
         // console.log(locaitons.filter(location => location != null));
         // res.json(locations.filter(location => location != null));
