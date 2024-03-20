@@ -398,7 +398,7 @@ export default function Map() {
         // Trigger when clicked
         map.current.on('click', (e) => {
             const features = map.current.queryRenderedFeatures(e.point, {
-                layers: ['flights', 'major-airports-circle']
+                layers: ['flights', 'major-airports-circle', 'spottingLocations']
             })
             if (features.length === 0) { // When layers other than flights and airports are selected
                 setSelectedFlight(null);
