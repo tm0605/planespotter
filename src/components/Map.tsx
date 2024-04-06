@@ -14,6 +14,33 @@ import 'shepherd.js/dist/css/shepherd.css';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESSTOKEN || 'XXXX';
 
+interface AirportData {
+    name: string;
+    iata_code: string;
+    icao_code: string;
+    lat: number;
+    lng: number;
+    country_code: string;
+}
+interface FlightData {
+    hex: string;
+    flight_icao: string;
+    flight_iata: string;
+    dep_icao: string;
+    dep_iata: string;
+    arr_icao: string;
+    arr_iata: string;
+    aircraft_icao: string;
+    reg_number: string;
+    alt: number;
+    v_speed: number;
+    speed: number;
+    dir: number;
+    lat: number;
+    lng: number;
+    squawk: number;
+}
+
 // Get Flight Updates and Set Data
 const updateFlightLocation  = async (map: mapboxgl.Map) => {
     const swLat = map.getBounds()._sw.lat;
@@ -210,7 +237,7 @@ export default function Map() {
             arrow: false,
             attachTo: { element: 'canvas', on: 'bottom' },
             beforeShowPromise: function () {
-                const exampleAirport: object = {
+                const exampleAirport: AirportData = {
                     "country_code": "US",
                     "iata_code": "BOS",
                     "icao_code": "KBOS",
@@ -344,10 +371,10 @@ export default function Map() {
 
         
             const animateAircraft = () => {
-                const data = map.current.getSource('flights')._data;
-                const now = Date.now();
-                const updateRate = map.current.getZoom() >= minZoomLevel ? 100 : 500; // Rapid update when zoomed
-                const timeElapsed = (now - lastUpdateTimestamp) / 1000;
+                const data: FlightData = map.current.getSource('flights')._data;
+                const now: number = Date.now();
+                const updateRate: number = map.current.getZoom() >= minZoomLevel ? 100 : 500; // Rapid update when zoomed
+                const timeElapsed: number = (now - lastUpdateTimestamp) / 1000;
                 
                 // If planes are within the map and not zoomed out too far
                 if (data != null && map.current.getZoom() > 4.5) {
