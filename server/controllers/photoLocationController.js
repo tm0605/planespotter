@@ -13,12 +13,12 @@ const parseLocation = (location) => {
 
 const getLocations = async (req, res) => {
     try {
-        const icao = req.query.icao;
-        const result = await scan(icao);
-        if (result != null) {
-            res.json(JSON.parse(result));
-            return;
-        }
+        // const icao = req.query.icao; // Disabled Redis
+        // const result = await scan(icao);
+        // if (result != null) {
+        //     res.json(JSON.parse(result));
+        //     return;
+        // }
 
         // retrieve lat lng value from query
         const lat = req.query.lat;
@@ -100,7 +100,8 @@ const getLocations = async (req, res) => {
             })
         })
 
-        await set(icao, JSON.stringify(geoJson));
+        // await set(icao, JSON.stringify(geoJson)); // Disabled Redis
+
         // console.log(locations[0]);
         // console.log(locaitons.filter(location => location != null));
         // res.json(locations.filter(location => location != null));
